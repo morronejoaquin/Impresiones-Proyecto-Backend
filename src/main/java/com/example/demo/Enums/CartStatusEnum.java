@@ -1,4 +1,4 @@
-package com.example.demo.Entities.Enums;
+package com.example.demo.Enums;
 public enum CartStatusEnum {
     PENDING, COMPLETED
 }
