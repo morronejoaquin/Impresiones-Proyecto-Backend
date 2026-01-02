@@ -7,7 +7,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Prices {
+public class PricesEntity {
 
     @Id
     @GeneratedValue
