@@ -47,9 +47,9 @@ public class OrderItemService {
 
     public void update(UUID id, Map<String, Object> camposActualizados) {
         OrderItemEntity entity = orderItemRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Almacenamiento no encontrado"));
+                .orElseThrow(() -> new NoSuchElementException("Item no encontrado"));
 
-        if (camposActualizados.containsKey("id") || camposActualizados.containsKey("idProductoLocal")) {
+        if (camposActualizados.containsKey("id")) {
             throw new IllegalArgumentException("No está permitido modificar el campo 'id'");
         }
 
