@@ -1,16 +1,14 @@
 package com.example.demo.Controllers;
 
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
+import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Services.CartService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -25,7 +23,7 @@ public class CartController {
     }
 
     @PostMapping
-    public ResponseEntity<String> save(CartCreateRequest request){
+    public ResponseEntity<String> save(@RequestBody CartCreateRequest request){
         service.save(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("Carrito creado correctamente");
     }
@@ -37,9 +35,15 @@ public class CartController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CartResponse> getById(UUID id){
+    public ResponseEntity<CartResponse> getById(@PathVariable UUID id){
         CartResponse cart = service.findById(id);
         return ResponseEntity.ok(cart);
+    }
+
+    @PatchMapping("/{cartId}/agregar-item")
+    public ResponseEntity<String> agregar(@PathVariable UUID cartId, @RequestBody OrderItemCreateRequest request){
+        String mensaje = service.agregar(cartId, request);
+        return ResponseEntity.ok(mensaje);
     }
 
 }

@@ -7,10 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -25,7 +22,7 @@ public class PricesController {
     }
 
     @PostMapping
-    public ResponseEntity<String> save(PricesUpdateRequest request){
+    public ResponseEntity<String> save(@RequestBody PricesUpdateRequest request){
         service.save(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("¨Precios nuevos creados correctamente");
     }
@@ -37,7 +34,7 @@ public class PricesController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PricesResponse> getById(UUID id){
+    public ResponseEntity<PricesResponse> getById(@PathVariable UUID id){
         PricesResponse price = service.findById(id);
         return ResponseEntity.ok(price);
     }

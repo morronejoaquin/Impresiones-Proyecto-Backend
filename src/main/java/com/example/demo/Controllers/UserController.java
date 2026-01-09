@@ -25,7 +25,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<String> save(UserCreateRequest request){
+    public ResponseEntity<String> save(@RequestBody UserCreateRequest request){
         service.save(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado correctamente");
     }
@@ -37,13 +37,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getById(UUID id){
+    public ResponseEntity<UserResponse> getById(@PathVariable UUID id){
         UserResponse user = service.findById(id);
         return ResponseEntity.ok(user);
     }
 
     @PatchMapping
-    public ResponseEntity<String> update(UUID id, Map<String, Object> camposActualizados){
+    public ResponseEntity<String> update(@PathVariable UUID id, @RequestBody Map<String, Object> camposActualizados){
         service.update(id, camposActualizados);
         return ResponseEntity.ok("Usuario actualizado correctamente");
     }
