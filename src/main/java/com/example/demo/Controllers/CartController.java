@@ -23,9 +23,9 @@ public class CartController {
     }
 
     @PostMapping
-    public ResponseEntity<String> save(@RequestBody CartCreateRequest request){
-        service.save(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Carrito creado correctamente");
+    public ResponseEntity<CartResponse> save(@RequestBody CartCreateRequest request){
+        CartResponse saved = service.save(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @GetMapping

@@ -7,6 +7,7 @@ import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.OrderItemEntity;
+import com.example.demo.Model.Entities.UserEntity;
 import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Repositories.CartRepository;
@@ -38,18 +39,23 @@ public class CartService {
         this.orderItemMapper = orderItemMapper;
     }
 
-    public void save(CartCreateRequest request){
-        if(!userRepository.existsById(request.getUserId())){
-            throw new NoSuchElementException("Usuario no encontrado");
-        }
+    public CartResponse save(CartCreateRequest request){
+        UserEntity user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
         CartEntity entity = cartMapper.toEntity(request);
 
+        entity.setUser(user);
+        entity.setTotal(0);
         entity.setCartStatus(CartStatusEnum.PENDING);
         entity.setStatus(OrderStatusEnum.PENDING);
+        entity.setCompletedAt(null);
+        entity.setDeliveredAt(null);
 
-        cartRepository.save(entity);
+        CartEntity saved = cartRepository.save(entity);
+
         System.out.println("Carrito id: "+entity.getId());
+        return cartMapper.toResponse(saved);
     }
 
     public Page<CartResponse> findAll(Pageable pageable){

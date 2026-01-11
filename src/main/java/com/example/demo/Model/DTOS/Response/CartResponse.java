@@ -13,10 +13,11 @@ public class CartResponse {
     private UUID id;
     private UUID userId;
     private double total;
+    private CustomerDataResponse customer;
     private OrderStatusEnum status;
     private CartStatusEnum cartStatus;
     private Instant completedAt;
     private Instant deliveredAt;
-    private CustomerDataResponse customer;
+    private boolean deleted = false;
 }
 
