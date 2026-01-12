@@ -5,10 +5,12 @@ import com.example.demo.Model.DTOS.Mappers.OrderItemMapper;
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
+import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.OrderItemEntity;
 import com.example.demo.Model.Entities.UserEntity;
 import com.example.demo.Model.Enums.CartStatusEnum;
+import com.example.demo.Model.Enums.FileTypeEnum;
 import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.OrderItemRepository;
@@ -47,7 +49,7 @@ public class CartService {
 
         entity.setUser(user);
         entity.setTotal(0);
-        entity.setCartStatus(CartStatusEnum.PENDING);
+        entity.setCartStatus(CartStatusEnum.OPEN);
         entity.setStatus(OrderStatusEnum.PENDING);
         entity.setCompletedAt(null);
         entity.setDeliveredAt(null);
@@ -70,9 +72,9 @@ public class CartService {
         return cartMapper.toResponse(entity);
     }
 
-    public String agregar(UUID cartId, OrderItemCreateRequest request){
+    public OrderItemResponse agregar(UUID cartId, OrderItemCreateRequest request){
 
-        validarFormatoArchivo(request.getFile());
+        String formato = validarFormatoArchivo(request.getFile());
 
         CartEntity carrito = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
@@ -80,14 +82,19 @@ public class CartService {
         OrderItemEntity item = orderItemMapper.toEntity(request);
 
         item.setCart(carrito);
+        item.setFile(request.getFile());
+        item.setFileType(FileTypeEnum.valueOf(formato.toUpperCase()));
+        item.setDeleted(false);
 
         carrito.getItems().add(item);
         cartRepository.save(carrito);
 
-        return "Orden agregada correctamente";
+        OrderItemEntity saved = orderItemRepository.save(item);
+
+        return orderItemMapper.toResponse(saved);
     }
 
-    public void validarFormatoArchivo(String file){
+    public String validarFormatoArchivo(String file){
         if(file == null || file.isEmpty()){
             throw new IllegalArgumentException("La ruta del archivo es obligatoria");
         }
@@ -97,37 +104,39 @@ public class CartService {
         if(!formato.matches("pdf|jpg|png")){
             throw new IllegalArgumentException("Formato no valido: "+formato+". Solo se permiten PDF, JPG o PNG");
         }
+
+        return formato;
     }
 
     public void eliminarItem(UUID cartId, UUID itemId){
 
-    CartEntity cart = cartRepository.findById(cartId)
-            .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        CartEntity cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
 
-    if(cart.getCartStatus() != CartStatusEnum.PENDING){
-        throw new IllegalStateException("No se pueden modificar carritos cerrados");
+        if(cart.getCartStatus() != CartStatusEnum.OPEN){
+            throw new IllegalStateException("No se pueden modificar carritos cerrados");
+        }
+
+        OrderItemEntity item = orderItemRepository.findByIdAndDeletedFalse(itemId)
+                .orElseThrow(() -> new NoSuchElementException("Item no encontrado"));
+
+        if(!item.getCart().getId().equals(cartId)){
+            throw new IllegalArgumentException("El item no pertenece a este carrito");
+        }
+
+        // Elimina virtualmente por decirlo de una manera
+        item.setDeleted(true);
+
+        // Recalcular total
+        double nuevoTotal = cart.getItems().stream()
+                .filter(i -> !i.isDeleted())
+                .mapToDouble(OrderItemEntity::getAmount)
+                .sum();
+
+        cart.setTotal(nuevoTotal);
+
+        orderItemRepository.save(item);
+        cartRepository.save(cart);
     }
-
-    OrderItemEntity item = orderItemRepository.findByIdAndDeletedFalse(itemId)
-            .orElseThrow(() -> new NoSuchElementException("Item no encontrado"));
-
-    if(!item.getCart().getId().equals(cartId)){
-        throw new IllegalArgumentException("El item no pertenece a este carrito");
-    }
-
-    // Elimina virtualmente por decirlo de una manera
-    item.setDeleted(true);
-
-    // Recalcular total
-    double nuevoTotal = cart.getItems().stream()
-            .filter(i -> !i.isDeleted())
-            .mapToDouble(OrderItemEntity::getAmount)
-            .sum();
-
-    cart.setTotal(nuevoTotal);
-
-    orderItemRepository.save(item);
-    cartRepository.save(cart);
-}
 
 }

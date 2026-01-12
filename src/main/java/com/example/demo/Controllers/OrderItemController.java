@@ -1,5 +1,6 @@
 package com.example.demo.Controllers;
 
+import com.example.demo.Model.DTOS.Request.OrderItemUpdateRequest;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Services.OrderItemService;
 import org.springframework.data.domain.Page;
@@ -32,9 +33,9 @@ public class OrderItemController {
         return ResponseEntity.ok(item);
     }
 
-    @PatchMapping
-    public ResponseEntity<String> update(@PathVariable UUID id, @RequestBody Map<String, Object> camposActualizados){
-        service.update(id, camposActualizados);
-        return ResponseEntity.ok("Pedido actualizado correctamente");
+    @PatchMapping("/{id}")
+    public ResponseEntity<OrderItemResponse> update(@PathVariable UUID id, @RequestBody OrderItemUpdateRequest request){
+        OrderItemResponse updated = service.update(id, request);
+        return ResponseEntity.ok(updated);
     }
 }

@@ -3,6 +3,7 @@ package com.example.demo.Controllers;
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
+import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Services.CartService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,18 +42,18 @@ public class CartController {
     }
 
     @PatchMapping("/{cartId}/agregar-item")
-    public ResponseEntity<String> agregar(@PathVariable UUID cartId, @RequestBody OrderItemCreateRequest request){
-        String mensaje = service.agregar(cartId, request);
-        return ResponseEntity.ok(mensaje);
+    public ResponseEntity<OrderItemResponse> agregar(@PathVariable UUID cartId, @RequestBody OrderItemCreateRequest request){
+        OrderItemResponse agregado = service.agregar(cartId, request);
+        return ResponseEntity.ok(agregado);
     }
 
     @DeleteMapping("/{cartId}/items/{itemId}")
-public ResponseEntity<Void> eliminarItem(
-        @PathVariable UUID cartId,
-        @PathVariable UUID itemId){
+    public ResponseEntity<String> eliminarItem(
+            @PathVariable UUID cartId,
+            @PathVariable UUID itemId){
 
-    service.eliminarItem(cartId, itemId);
-    return ResponseEntity.noContent().build();
-}
+        service.eliminarItem(cartId, itemId);
+        return ResponseEntity.ok().body("Item eliminado correctamente");
+    }
 
 }

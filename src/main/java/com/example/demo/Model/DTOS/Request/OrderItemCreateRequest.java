@@ -6,8 +6,8 @@ import lombok.Data;
 
 @Data
 public class OrderItemCreateRequest {
-    private boolean isColor;
-    private boolean isDoubleSided;
+    private boolean color;
+    private boolean doubleSided;
     private BindingTypeEnum binding;
     private int pages;
     private String comments;

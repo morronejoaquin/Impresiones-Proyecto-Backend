@@ -21,8 +21,8 @@ public class OrderItemEntity {
     @JoinColumn(name = "cart_id")
     private CartEntity cart;
 
-    private boolean isColor;
-    private boolean isDoubleSided;
+    private boolean color;
+    private boolean doubleSided;
 
     @Enumerated(EnumType.STRING)
     private BindingTypeEnum binding;

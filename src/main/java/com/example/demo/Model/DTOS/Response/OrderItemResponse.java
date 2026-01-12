@@ -11,8 +11,8 @@ import lombok.Data;
 public class OrderItemResponse {
     private UUID id;
     private UUID cartId;
-    private boolean isColor;
-    private boolean isDoubleSided;
+    private boolean color;
+    private boolean doubleSided;
     private BindingTypeEnum binding;
     private int pages;
     private String comments;
