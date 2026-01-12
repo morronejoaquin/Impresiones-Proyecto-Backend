@@ -15,9 +15,6 @@ import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.OrderItemRepository;
 import com.example.demo.Repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
@@ -31,14 +28,21 @@ public class CartService {
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderItemMapper orderItemMapper;
+    private final PricingService pricingService;
 
-    @Autowired
-    public CartService(CartMapper cartMapper, CartRepository cartRepository, UserRepository userRepository, OrderItemRepository orderItemRepository, OrderItemMapper orderItemMapper) {
+    public CartService(CartMapper cartMapper,
+                       CartRepository cartRepository,
+                       UserRepository userRepository,
+                       OrderItemRepository orderItemRepository,
+                       OrderItemMapper orderItemMapper,
+                       PricingService pricingService) {
+
         this.cartMapper = cartMapper;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
         this.orderItemRepository = orderItemRepository;
         this.orderItemMapper = orderItemMapper;
+        this.pricingService = pricingService;
     }
 
     public CartResponse save(CartCreateRequest request){
@@ -46,66 +50,47 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
         CartEntity entity = cartMapper.toEntity(request);
-
         entity.setUser(user);
         entity.setTotal(0);
         entity.setCartStatus(CartStatusEnum.OPEN);
         entity.setStatus(OrderStatusEnum.PENDING);
-        entity.setCompletedAt(null);
-        entity.setDeliveredAt(null);
 
-        CartEntity saved = cartRepository.save(entity);
-
-        System.out.println("Carrito id: "+entity.getId());
-        return cartMapper.toResponse(saved);
-    }
-
-    public Page<CartResponse> findAll(Pageable pageable){
-        Page<CartEntity> page = cartRepository.findAll(pageable);
-        return page.map(cartMapper::toResponse);
+        return cartMapper.toResponse(cartRepository.save(entity));
     }
 
     public CartResponse findById(UUID id){
-        CartEntity entity = cartRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
-
-        return cartMapper.toResponse(entity);
+        return cartMapper.toResponse(cartRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado")));
     }
 
     public OrderItemResponse agregar(UUID cartId, OrderItemCreateRequest request){
 
         String formato = validarFormatoArchivo(request.getFile());
 
-        CartEntity carrito = cartRepository.findById(cartId)
+        CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
 
-        OrderItemEntity item = orderItemMapper.toEntity(request);
+        if(cart.getCartStatus() != CartStatusEnum.OPEN){
+            throw new IllegalStateException("El carrito no está abierto");
+        }
 
-        item.setCart(carrito);
+        OrderItemEntity item = orderItemMapper.toEntity(request);
+        item.setCart(cart);
         item.setFile(request.getFile());
         item.setFileType(FileTypeEnum.valueOf(formato.toUpperCase()));
         item.setDeleted(false);
 
-        carrito.getItems().add(item);
-        cartRepository.save(carrito);
+        // 🔥 AQUI SE CALCULA EL PRECIO
+        double subtotal = pricingService.calcular(item);
+        item.setAmount(subtotal);
 
-        OrderItemEntity saved = orderItemRepository.save(item);
+        cart.getItems().add(item);
+        recalcularTotal(cart);
 
-        return orderItemMapper.toResponse(saved);
-    }
+        orderItemRepository.save(item);
+        cartRepository.save(cart);
 
-    public String validarFormatoArchivo(String file){
-        if(file == null || file.isEmpty()){
-            throw new IllegalArgumentException("La ruta del archivo es obligatoria");
-        }
-
-        String formato = file.substring(file.lastIndexOf(".") + 1).toLowerCase();
-
-        if(!formato.matches("pdf|jpg|png")){
-            throw new IllegalArgumentException("Formato no valido: "+formato+". Solo se permiten PDF, JPG o PNG");
-        }
-
-        return formato;
+        return orderItemMapper.toResponse(item);
     }
 
     public void eliminarItem(UUID cartId, UUID itemId){
@@ -120,23 +105,29 @@ public class CartService {
         OrderItemEntity item = orderItemRepository.findByIdAndDeletedFalse(itemId)
                 .orElseThrow(() -> new NoSuchElementException("Item no encontrado"));
 
-        if(!item.getCart().getId().equals(cartId)){
-            throw new IllegalArgumentException("El item no pertenece a este carrito");
-        }
-
-        // Elimina virtualmente por decirlo de una manera
         item.setDeleted(true);
-
-        // Recalcular total
-        double nuevoTotal = cart.getItems().stream()
-                .filter(i -> !i.isDeleted())
-                .mapToDouble(OrderItemEntity::getAmount)
-                .sum();
-
-        cart.setTotal(nuevoTotal);
+        recalcularTotal(cart);
 
         orderItemRepository.save(item);
         cartRepository.save(cart);
     }
 
+    private void recalcularTotal(CartEntity cart){
+        cart.setTotal(cart.getItems().stream()
+                .filter(i -> !i.isDeleted())
+                .mapToDouble(OrderItemEntity::getAmount)
+                .sum());
+    }
+
+    private String validarFormatoArchivo(String file){
+        if(file == null || file.isEmpty()){
+            throw new IllegalArgumentException("La ruta del archivo es obligatoria");
+        }
+
+        String formato = file.substring(file.lastIndexOf(".") + 1).toLowerCase();
+        if(!formato.matches("pdf|jpg|png")){
+            throw new IllegalArgumentException("Formato no valido: "+formato);
+        }
+        return formato;
+    }
 }
