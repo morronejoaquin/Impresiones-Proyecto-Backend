@@ -15,6 +15,9 @@ import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.OrderItemRepository;
 import com.example.demo.Repositories.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
@@ -80,7 +83,6 @@ public class CartService {
         item.setFileType(FileTypeEnum.valueOf(formato.toUpperCase()));
         item.setDeleted(false);
 
-        // 🔥 AQUI SE CALCULA EL PRECIO
         double subtotal = pricingService.calcular(item);
         item.setAmount(subtotal);
 
@@ -111,6 +113,13 @@ public class CartService {
         orderItemRepository.save(item);
         cartRepository.save(cart);
     }
+    
+    public Page<CartResponse> findAll(Pageable pageable){
+    return cartRepository.findAll(pageable)
+            .map(cartMapper::toResponse);
+    }
+
+
 
     private void recalcularTotal(CartEntity cart){
         cart.setTotal(cart.getItems().stream()
