@@ -1,4 +1,4 @@
 package com.example.demo.Model.Enums;
 public enum CartStatusEnum {
-    PENDING, COMPLETED
+    OPEN, PAID, SENT, DELIVERED, CANCELLED
 }
