@@ -98,4 +98,36 @@ public class CartService {
             throw new IllegalArgumentException("Formato no valido: "+formato+". Solo se permiten PDF, JPG o PNG");
         }
     }
+
+    public void eliminarItem(UUID cartId, UUID itemId){
+
+    CartEntity cart = cartRepository.findById(cartId)
+            .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+    if(cart.getCartStatus() != CartStatusEnum.PENDING){
+        throw new IllegalStateException("No se pueden modificar carritos cerrados");
+    }
+
+    OrderItemEntity item = orderItemRepository.findByIdAndDeletedFalse(itemId)
+            .orElseThrow(() -> new NoSuchElementException("Item no encontrado"));
+
+    if(!item.getCart().getId().equals(cartId)){
+        throw new IllegalArgumentException("El item no pertenece a este carrito");
+    }
+
+    // Elimina virtualmente por decirlo de una manera
+    item.setDeleted(true);
+
+    // Recalcular total
+    double nuevoTotal = cart.getItems().stream()
+            .filter(i -> !i.isDeleted())
+            .mapToDouble(OrderItemEntity::getAmount)
+            .sum();
+
+    cart.setTotal(nuevoTotal);
+
+    orderItemRepository.save(item);
+    cartRepository.save(cart);
+}
+
 }
