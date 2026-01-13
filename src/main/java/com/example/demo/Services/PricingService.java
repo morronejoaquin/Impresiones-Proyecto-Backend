@@ -2,6 +2,7 @@ package com.example.demo.Services;
 
 import com.example.demo.Model.Entities.OrderItemEntity;
 import com.example.demo.Model.Entities.PricesEntity;
+import com.example.demo.Model.Enums.BindingTypeEnum;
 import com.example.demo.Repositories.PricesRepository;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class PricingService {
 
         double total = precioHoja * item.getPages() * item.getCopies();
 
-        if(item.getBinding() != null){
+        if(item.getBinding() != BindingTypeEnum.NONE){
             total += prices.getPriceRingedBinding();
         }
 

@@ -3,6 +3,7 @@ package com.example.demo.Controllers;
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
+import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Services.CartService;
 import org.springframework.data.domain.Page;
@@ -54,6 +55,12 @@ public class CartController {
 
         service.eliminarItem(cartId, itemId);
         return ResponseEntity.ok().body("Item eliminado correctamente");
+    }
+
+    @GetMapping("/{id}/items")
+    public ResponseEntity<CartWithItemsResponse> findWithItems(@PathVariable UUID id){
+        CartWithItemsResponse cart = service.findWithItems(id);
+        return ResponseEntity.ok(cart);
     }
 
 }

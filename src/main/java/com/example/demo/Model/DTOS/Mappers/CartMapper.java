@@ -1,5 +1,6 @@
 package com.example.demo.Model.DTOS.Mappers;
 
+import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
 import org.mapstruct.*;
 
 import com.example.demo.Model.Entities.CartEntity;
@@ -14,4 +15,7 @@ public interface CartMapper {
     CartResponse toResponse(CartEntity entity);
 
     CartEntity toEntity(CartCreateRequest req);
+
+    @Mapping(source = "user.id", target = "userId")
+    CartWithItemsResponse toResponseWithItems(CartEntity entity);
 }

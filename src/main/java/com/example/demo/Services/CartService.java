@@ -5,6 +5,7 @@ import com.example.demo.Model.DTOS.Mappers.OrderItemMapper;
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
+import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.OrderItemEntity;
@@ -119,8 +120,6 @@ public class CartService {
             .map(cartMapper::toResponse);
     }
 
-
-
     private void recalcularTotal(CartEntity cart){
         cart.setTotal(cart.getItems().stream()
                 .filter(i -> !i.isDeleted())
@@ -138,5 +137,13 @@ public class CartService {
             throw new IllegalArgumentException("Formato no valido: "+formato);
         }
         return formato;
+    }
+
+    public CartWithItemsResponse findWithItems(UUID cartId){
+
+        CartEntity cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+        return cartMapper.toResponseWithItems(cart);
     }
 }
