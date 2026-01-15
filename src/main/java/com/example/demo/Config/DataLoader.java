@@ -1,9 +1,11 @@
 package com.example.demo.Config;
 
 import com.example.demo.Model.Entities.PricesEntity;
+import com.example.demo.Model.Entities.StoreLocationEntity;
 import com.example.demo.Model.Entities.UserEntity;
 import com.example.demo.Model.Enums.UserRoleEnum;
 import com.example.demo.Repositories.PricesRepository;
+import com.example.demo.Repositories.StoreLocationRepository;
 import com.example.demo.Repositories.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -16,10 +18,12 @@ public class DataLoader implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PricesRepository pricesRepository;
+    private final StoreLocationRepository storeLocationRepository;
 
-    public DataLoader(UserRepository userRepository, PricesRepository pricesRepository) {
+    public DataLoader(UserRepository userRepository, PricesRepository pricesRepository, StoreLocationRepository storeLocationRepository) {
         this.userRepository = userRepository;
         this.pricesRepository = pricesRepository;
+        this.storeLocationRepository = storeLocationRepository;
     }
 
     @Override
@@ -45,6 +49,12 @@ public class DataLoader implements CommandLineRunner {
             Instant instanteDesdeString = Instant.parse(fechaString);
             prices.setValidTo(instanteDesdeString);
             pricesRepository.save(prices);
+
+            StoreLocationEntity location = new StoreLocationEntity();
+            location.setLat(38.02226);
+            location.setLng(57.33085);
+            location.setAddress("7600, Magallanes 3899, B7603 Mar del Plata, Provincia de Buenos Aires");
+            storeLocationRepository.save(location);
         }
     }
 }

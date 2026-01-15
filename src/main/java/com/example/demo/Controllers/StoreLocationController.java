@@ -1,5 +1,7 @@
 package com.example.demo.Controllers;
 
+import com.example.demo.Model.DTOS.Response.StoreLocationResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,8 +21,9 @@ public class StoreLocationController {
     }
 
     @GetMapping("/location")
-    public StoreLocationEntity getLocation(){
-        return service.getLocation();
+    public ResponseEntity<StoreLocationResponse> getLocation(){
+        StoreLocationResponse response = service.getLocation();
+        return ResponseEntity.ok(response);
     }
 
 }

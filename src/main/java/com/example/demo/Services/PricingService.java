@@ -1,5 +1,6 @@
 package com.example.demo.Services;
 
+import com.example.demo.Model.DTOS.Response.PriceCalculationResponse;
 import com.example.demo.Model.Entities.OrderItemEntity;
 import com.example.demo.Model.Entities.PricesEntity;
 import com.example.demo.Model.Enums.BindingTypeEnum;
@@ -19,20 +20,41 @@ public class PricingService {
 
     public double calcular(OrderItemEntity item){
 
-        PricesEntity prices = pricesRepository
-                .findFirstByValidFromLessThanEqualAndValidToGreaterThanEqual(Instant.now(), Instant.now())
-                .orElseThrow(() -> new RuntimeException("No hay precios vigentes configurados"));
+        PriceCalculationResponse response = calculadora(item.getPages(), item.getCopies(), item.isColor(), item.getBinding());
+        return response.getTotal();
+    }
 
-        double precioHoja = item.isColor()
+    public PriceCalculationResponse calculadora(
+            int pages,
+            int copies,
+            boolean color,
+            BindingTypeEnum binding
+    ) {
+
+        PricesEntity prices = obtenerPreciosVigentes();
+
+        double precioHoja = color
                 ? prices.getPricePerSheetColor()
                 : prices.getPricePerSheetBW();
 
-        double total = precioHoja * item.getPages() * item.getCopies();
+        double total = precioHoja * pages * copies;
 
-        if(item.getBinding() != BindingTypeEnum.NONE){
-            total += prices.getPriceRingedBinding();
+        double bindingPrice = 0;
+        if (binding != BindingTypeEnum.NONE) {
+            bindingPrice = prices.getPriceRingedBinding();
+            total += bindingPrice;
         }
 
-        return total;
+        PriceCalculationResponse response = new PriceCalculationResponse();
+        response.setTotal(total);
+
+        return response;
+    }
+
+    public PricesEntity obtenerPreciosVigentes(){
+        return pricesRepository
+                .findFirstByValidFromLessThanEqualAndValidToGreaterThanEqual(Instant.now(), Instant.now())
+                .orElseThrow(() -> new RuntimeException("No hay precios vigentes configurados"));
+
     }
 }
