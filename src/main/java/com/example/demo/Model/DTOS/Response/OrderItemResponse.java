@@ -16,7 +16,8 @@ public class OrderItemResponse {
     private BindingTypeEnum binding;
     private int pages;
     private String comments;
-    private String file;
+    private String driveFileId;
+    private String fileName;
     private FileTypeEnum fileType;
     private int copies;
     private double amount;

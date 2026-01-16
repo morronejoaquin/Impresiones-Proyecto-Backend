@@ -67,9 +67,7 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado")));
     }
 
-    public OrderItemResponse agregar(UUID cartId, OrderItemCreateRequest request){
-
-        String formato = validarFormatoArchivo(request.getFile());
+    public OrderItemResponse agregar(UUID cartId, OrderItemCreateRequest request, String driveFileId, String originalFileName){
 
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
@@ -80,12 +78,18 @@ public class CartService {
 
         OrderItemEntity item = orderItemMapper.toEntity(request);
         item.setCart(cart);
-        item.setFile(request.getFile());
-        item.setFileType(FileTypeEnum.valueOf(formato.toUpperCase()));
-        item.setDeleted(false);
+
+        item.setDriveFileId(driveFileId);
+        item.setFileName(originalFileName);
+        String extension = originalFileName
+                .substring(originalFileName.lastIndexOf(".") + 1)
+                .toUpperCase();
+
+        item.setFileType(FileTypeEnum.valueOf(extension));
 
         double subtotal = pricingService.calcular(item);
         item.setAmount(subtotal);
+        item.setDeleted(false);
 
         cart.getItems().add(item);
         recalcularTotal(cart);

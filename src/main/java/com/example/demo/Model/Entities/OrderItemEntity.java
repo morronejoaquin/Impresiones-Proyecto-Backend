@@ -32,7 +32,9 @@ public class OrderItemEntity {
     @Column(length = 500)
     private String comments;
 
-    private String file;
+    private String driveFileId;
+
+    private String fileName;
 
     private FileTypeEnum fileType;
 

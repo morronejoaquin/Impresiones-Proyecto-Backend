@@ -13,8 +13,20 @@ target/
 .springBeans
 .sts4-cache
 
-### ENV ###
-.env
+# Maven / Gradle
+/target/
+/build/
+
+# IDEs
+.idea/
+
+# Google Drive
+src/main/resources/credentials.json
+tokens/
+
+# Logs
+*.log
+
 
 ### IntelliJ IDEA ###
 .idea

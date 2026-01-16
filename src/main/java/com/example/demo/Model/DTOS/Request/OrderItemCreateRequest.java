@@ -11,7 +11,6 @@ public class OrderItemCreateRequest {
     private BindingTypeEnum binding;
     private int pages;
     private String comments;
-    private String file;
     private int copies;
     private double amount;
     private Integer imageWidth;
