@@ -22,9 +22,9 @@ public class PaymentController {
     }
 
     @PostMapping
-    public ResponseEntity<String> save(@RequestBody PaymentCreateRequest request){
-        service.save(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Pago creado correctamente");
+    public ResponseEntity<PaymentResponse> save(@RequestBody PaymentCreateRequest request){
+        PaymentResponse payment = service.save(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(payment);
     }
 
     @GetMapping
