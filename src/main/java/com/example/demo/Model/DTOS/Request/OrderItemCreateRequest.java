@@ -9,12 +9,8 @@ public class OrderItemCreateRequest {
     private boolean color;
     private boolean doubleSided;
     private BindingTypeEnum binding;
-    private int pages;
     private String comments;
     private int copies;
     private double amount;
-    private Integer imageWidth;
-    private Integer imageHeight;
-
 }
 

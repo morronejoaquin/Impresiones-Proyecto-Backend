@@ -7,6 +7,8 @@ import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Services.CartService;
 import com.example.demo.Services.GoogleDriveService;
+import com.example.demo.Utils.FileMetaData;
+import com.example.demo.Utils.FileUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.ByteArrayInputStream;
 import java.util.UUID;
 
 @RestController
@@ -57,9 +60,16 @@ public class CartController {
         OrderItemCreateRequest request =
                 mapper.readValue(data, OrderItemCreateRequest.class);
 
-        String driveFileId = googleDriveService.uploadFile(file.getOriginalFilename(), file.getInputStream(), file.getContentType());
+        byte[] bytes = file.getBytes();
 
-        OrderItemResponse agregado = service.agregar(cartId, request, driveFileId, file.getOriginalFilename());
+        FileMetaData metadata = FileUtils.obtenerMetadata(
+                new ByteArrayInputStream(bytes),
+                file.getContentType()
+        );
+
+        String driveFileId = googleDriveService.uploadFile(file.getOriginalFilename(), new ByteArrayInputStream(bytes), file.getContentType());
+
+        OrderItemResponse agregado = service.agregar(cartId, request, driveFileId, file.getOriginalFilename(), metadata);
         return ResponseEntity.ok(agregado);
     }
 

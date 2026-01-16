@@ -16,6 +16,7 @@ import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.OrderItemRepository;
 import com.example.demo.Repositories.UserRepository;
+import com.example.demo.Utils.FileMetaData;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -67,7 +68,7 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado")));
     }
 
-    public OrderItemResponse agregar(UUID cartId, OrderItemCreateRequest request, String driveFileId, String originalFileName){
+    public OrderItemResponse agregar(UUID cartId, OrderItemCreateRequest request, String driveFileId, String originalFileName, FileMetaData metadata){
 
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
@@ -90,6 +91,12 @@ public class CartService {
         double subtotal = pricingService.calcular(item);
         item.setAmount(subtotal);
         item.setDeleted(false);
+
+        int pages = metadata.getPages() != null ? metadata.getPages() : 1;
+
+        item.setPages(pages);
+        item.setImageWidth(metadata.getImageWidth());
+        item.setImageHeight(metadata.getImageHeight());
 
         cart.getItems().add(item);
         recalcularTotal(cart);
