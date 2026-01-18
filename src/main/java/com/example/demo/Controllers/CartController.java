@@ -1,6 +1,7 @@
 package com.example.demo.Controllers;
 
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
+import com.example.demo.Model.DTOS.Request.CartStatusUpdateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
@@ -94,5 +95,16 @@ public class CartController {
             throw new IllegalArgumentException("Formato no permitido");
         }
     }
+
+    @PatchMapping("/{cartId}/estado")
+        public ResponseEntity<CartResponse> actualizarEstado(
+        @PathVariable UUID cartId,
+        @RequestBody CartStatusUpdateRequest request){
+
+    CartResponse response =
+            service.actualizarEstado(cartId, request.getStatus());
+
+    return ResponseEntity.ok(response);
+}
 
 }
