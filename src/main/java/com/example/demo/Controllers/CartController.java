@@ -70,7 +70,7 @@ public class CartController {
     @PatchMapping(value = "/{cartId}/agregar-item",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<OrderItemResponse> agregar(@PathVariable UUID cartId, @RequestPart("data") String data, @RequestPart("file") MultipartFile file) throws Exception{
-        validarFormato(file);
+        service.validarFormato(file);
 
         ObjectMapper mapper = new ObjectMapper();
         OrderItemCreateRequest request =
@@ -102,13 +102,6 @@ public class CartController {
     public ResponseEntity<CartWithItemsResponse> findWithItems(@PathVariable UUID id){
         CartWithItemsResponse cart = service.findWithItems(id);
         return ResponseEntity.ok(cart);
-    }
-
-    private void validarFormato(MultipartFile file) {
-        String name = file.getOriginalFilename();
-        if (name == null || !name.matches(".*\\.(pdf|jpg|png)$")) {
-            throw new IllegalArgumentException("Formato no permitido");
-        }
     }
 
     @PatchMapping("/{cartId}/estado")

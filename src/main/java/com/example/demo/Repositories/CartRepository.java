@@ -11,9 +11,9 @@ import java.util.UUID;
 
 @Repository
 public interface CartRepository extends JpaRepository<CartEntity, UUID> {
-    Optional<CartEntity> findByUser(UUID id);
+    Optional<CartEntity> findByUser_Id(UUID userId);
 
-    Page<CartEntity> findByStatusOrderByCompletedAtDesc(
+    Page<CartEntity> findByStatusOrderByAdmReceivedAtAsc(
         com.example.demo.Model.Enums.OrderStatusEnum status,
         Pageable pageable
     );

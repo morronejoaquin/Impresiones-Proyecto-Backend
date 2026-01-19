@@ -21,9 +21,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -55,13 +57,25 @@ public class CartService {
         UserEntity user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
+        verifyCart(user.getId());
+
         CartEntity entity = cartMapper.toEntity(request);
         entity.setUser(user);
         entity.setTotal(0);
         entity.setCartStatus(CartStatusEnum.OPEN);
-        entity.setStatus(OrderStatusEnum.PENDING);
+        entity.setStatus(null);
 
         return cartMapper.toResponse(cartRepository.save(entity));
+    }
+
+    public void verifyCart(UUID userId){
+        Optional<CartEntity> optionalCart = cartRepository.findByUser_Id(userId);
+
+        if (optionalCart.isPresent() &&
+                optionalCart.get().getCartStatus().equals(CartStatusEnum.OPEN)) {
+
+            throw new IllegalStateException("El usuario ya tiene un carrito en uso");
+        }
     }
 
     public CartResponse findById(UUID id){
@@ -89,15 +103,15 @@ public class CartService {
 
         item.setFileType(FileTypeEnum.valueOf(extension));
 
-        double subtotal = pricingService.calcular(item);
-        item.setAmount(subtotal);
-        item.setDeleted(false);
-
         int pages = metadata.getPages() != null ? metadata.getPages() : 1;
 
         item.setPages(pages);
         item.setImageWidth(metadata.getImageWidth());
         item.setImageHeight(metadata.getImageHeight());
+
+        double subtotal = pricingService.calcular(item);
+        item.setAmount(subtotal);
+        item.setDeleted(false);
 
         cart.getItems().add(item);
         recalcularTotal(cart);
@@ -112,6 +126,7 @@ public class CartService {
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
         cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
+        cart.setStatus(OrderStatusEnum.PENDING);
         cart.setAdmReceivedAt(Instant.now());
         return cartMapper.toResponse(cartRepository.save(cart));
     }
@@ -141,7 +156,7 @@ public class CartService {
     }
 
     public Page<CartResponse> findByStatus(OrderStatusEnum status, Pageable pageable) {
-        return cartRepository.findByStatusOrderByCompletedAtDesc(status, pageable)
+        return cartRepository.findByStatusOrderByAdmReceivedAtAsc(status, pageable)
                 .map(cartMapper::toResponse);
     }
 
@@ -152,16 +167,11 @@ public class CartService {
                 .sum());
     }
 
-    private String validarFormatoArchivo(String file){
-        if(file == null || file.isEmpty()){
-            throw new IllegalArgumentException("La ruta del archivo es obligatoria");
+    public void validarFormato(MultipartFile file) {
+        String name = file.getOriginalFilename();
+        if (name == null || !name.matches(".*\\.(pdf|jpg|png)$")) {
+            throw new IllegalArgumentException("Formato no permitido");
         }
-
-        String formato = file.substring(file.lastIndexOf(".") + 1).toLowerCase();
-        if(!formato.matches("pdf|jpg|png")){
-            throw new IllegalArgumentException("Formato no valido: "+formato);
-        }
-        return formato;
     }
 
     public CartWithItemsResponse findWithItems(UUID cartId){
