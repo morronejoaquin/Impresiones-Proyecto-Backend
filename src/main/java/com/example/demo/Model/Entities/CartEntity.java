@@ -40,6 +40,7 @@ public class CartEntity {
 
     private Instant completedAt;
     private Instant deliveredAt;
+    private Instant admReceivedAt;
 
     private boolean deleted = false;
 }

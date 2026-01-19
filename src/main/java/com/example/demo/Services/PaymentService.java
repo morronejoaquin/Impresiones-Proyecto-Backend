@@ -50,7 +50,7 @@ public class PaymentService {
 
         paymentRepository.save(payment);
 
-        cart.setCartStatus(CartStatusEnum.PAID);
+        cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
         cartRepository.save(cart);
 
         return paymentMapper.toResponse(payment);

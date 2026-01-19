@@ -18,6 +18,7 @@ public class CartResponse {
     private CartStatusEnum cartStatus;
     private Instant completedAt;
     private Instant deliveredAt;
+    private Instant admReceivedAt;
     private boolean deleted = false;
 }
 

@@ -46,6 +46,21 @@ public class CartController {
         return ResponseEntity.ok(carts);
     }
 
+    @PatchMapping("/close/{id}")
+    public ResponseEntity<CartResponse> closeCart (@PathVariable UUID id){
+        CartResponse cart = service.closeCart(id);
+        return ResponseEntity.ok(cart);
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<Page<CartResponse>> getPendingCarts(Pageable pageable){
+        Page<CartResponse> pendingCarts = service.findByStatus(
+            com.example.demo.Model.Enums.OrderStatusEnum.PENDING,
+            pageable
+        );
+        return ResponseEntity.ok(pendingCarts);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CartResponse> getById(@PathVariable UUID id){
         CartResponse cart = service.findById(id);

@@ -108,6 +108,14 @@ public class CartService {
         return orderItemMapper.toResponse(item);
     }
 
+    public CartResponse closeCart(UUID cartId){
+        CartEntity cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
+        cart.setAdmReceivedAt(Instant.now());
+        return cartMapper.toResponse(cartRepository.save(cart));
+    }
+
     public void eliminarItem(UUID cartId, UUID itemId){
 
         CartEntity cart = cartRepository.findById(cartId)
@@ -130,6 +138,11 @@ public class CartService {
     public Page<CartResponse> findAll(Pageable pageable){
     return cartRepository.findAll(pageable)
             .map(cartMapper::toResponse);
+    }
+
+    public Page<CartResponse> findByStatus(OrderStatusEnum status, Pageable pageable) {
+        return cartRepository.findByStatusOrderByCompletedAtDesc(status, pageable)
+                .map(cartMapper::toResponse);
     }
 
     private void recalcularTotal(CartEntity cart){
@@ -193,15 +206,13 @@ public class CartService {
 private void sincronizarCartStatus(CartEntity cart) {
 
     switch (cart.getStatus()) {
-        case PENDING -> cart.setCartStatus(CartStatusEnum.OPEN);
-
-        case PRINTING, BINDING -> cart.setCartStatus(CartStatusEnum.PAID);
-
-        case READY -> cart.setCartStatus(CartStatusEnum.SENT);
+        case PENDING, PRINTING, BINDING -> cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
 
         case DELIVERED -> cart.setCartStatus(CartStatusEnum.DELIVERED);
 
         case CANCELLED -> cart.setCartStatus(CartStatusEnum.CANCELLED);
+
+        case READY -> cart.setCartStatus(CartStatusEnum.READY);
     }
 }
 
