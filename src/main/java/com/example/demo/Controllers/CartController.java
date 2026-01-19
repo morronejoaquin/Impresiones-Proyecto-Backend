@@ -6,6 +6,7 @@ import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
+import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Services.CartService;
 import com.example.demo.Services.GoogleDriveService;
 import com.example.demo.Utils.FileMetaData;
@@ -20,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -105,14 +108,25 @@ public class CartController {
     }
 
     @PatchMapping("/{cartId}/estado")
-        public ResponseEntity<CartResponse> actualizarEstado(
-        @PathVariable UUID cartId,
-        @RequestBody CartStatusUpdateRequest request){
+    public ResponseEntity<CartResponse> actualizarEstado(
+            @PathVariable UUID cartId,
+            @RequestBody CartStatusUpdateRequest request){
 
-    CartResponse response =
-            service.actualizarEstado(cartId, request.getStatus());
+        CartResponse response =
+                service.actualizarEstado(cartId, request.getStatus());
 
-    return ResponseEntity.ok(response);
-}
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/filter")
+    public Page<CartResponse> filterCarts(
+            @RequestParam(required = false) OrderStatusEnum status,
+            @RequestParam(required = false) Instant from,
+            @RequestParam(required = false) Instant to,
+            @RequestParam(required = false) UUID userId,
+            Pageable pageable
+    ){
+        return service.filterCarts(status, from, to, userId, pageable);
+    }
 
 }

@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -184,47 +185,52 @@ public class CartService {
 
     public CartResponse actualizarEstado(UUID cartId, OrderStatusEnum nuevoEstado){
 
-    CartEntity cart = cartRepository.findById(cartId)
-            .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        CartEntity cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
 
-    // No podemos cambiar los estados en entregado o cancelado
-    if (cart.getStatus() == OrderStatusEnum.DELIVERED ||
-        cart.getStatus() == OrderStatusEnum.CANCELLED) {
-        throw new IllegalStateException("No se puede modificar un carrito entregado o cancelado");
+        // No podemos cambiar los estados en entregado o cancelado
+        if (cart.getStatus() == OrderStatusEnum.DELIVERED ||
+            cart.getStatus() == OrderStatusEnum.CANCELLED) {
+            throw new IllegalStateException("No se puede modificar un carrito entregado o cancelado");
+        }
+
+        if (nuevoEstado == null) {
+            throw new IllegalArgumentException("El estado es obligatorio");
+        }
+
+        cart.setStatus(nuevoEstado);
+
+        sincronizarCartStatus(cart); //Lo marcamos para si esta en uso o no el carrito
+
+
+        // Setear fecha y hora
+        if (nuevoEstado == OrderStatusEnum.DELIVERED) {
+            cart.setDeliveredAt(Instant.now());
+        } else {
+            cart.setCompletedAt(Instant.now());
+        }
+
+        CartEntity actualizado = cartRepository.save(cart);
+        return cartMapper.toResponse(actualizado);
     }
 
-    if (nuevoEstado == null) {
-        throw new IllegalArgumentException("El estado es obligatorio");
+    private void sincronizarCartStatus(CartEntity cart) {
+
+        switch (cart.getStatus()) {
+            case PENDING, PRINTING, BINDING -> cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
+
+            case DELIVERED -> cart.setCartStatus(CartStatusEnum.DELIVERED);
+
+            case CANCELLED -> cart.setCartStatus(CartStatusEnum.CANCELLED);
+
+            case READY -> cart.setCartStatus(CartStatusEnum.READY);
+        }
     }
 
-    cart.setStatus(nuevoEstado);
-
-    sincronizarCartStatus(cart); //Lo marcamos para si esta en uso o no el carrito
-
-
-    // Setear fecha y hora
-    if (nuevoEstado == OrderStatusEnum.DELIVERED) {
-        cart.setDeliveredAt(Instant.now());
-    } else {
-        cart.setCompletedAt(Instant.now());
+    public Page<CartResponse> filterCarts(OrderStatusEnum status, Instant from, Instant to, UUID userId, Pageable pageable){
+        return cartRepository.findByFilters(status, from, to, userId, pageable)
+                .map(cartMapper::toResponse);
     }
-
-    CartEntity actualizado = cartRepository.save(cart);
-    return cartMapper.toResponse(actualizado);
-}
-
-private void sincronizarCartStatus(CartEntity cart) {
-
-    switch (cart.getStatus()) {
-        case PENDING, PRINTING, BINDING -> cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
-
-        case DELIVERED -> cart.setCartStatus(CartStatusEnum.DELIVERED);
-
-        case CANCELLED -> cart.setCartStatus(CartStatusEnum.CANCELLED);
-
-        case READY -> cart.setCartStatus(CartStatusEnum.READY);
-    }
-}
 
 
 }
