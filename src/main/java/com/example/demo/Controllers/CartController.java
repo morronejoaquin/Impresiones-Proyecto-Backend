@@ -107,6 +107,12 @@ public class CartController {
         return ResponseEntity.ok(cart);
     }
 
+    @GetMapping("/{userId}/open")
+    public ResponseEntity<CartWithItemsResponse> findOpenCart(@PathVariable UUID userId){
+        CartWithItemsResponse cart = service.findOpenCart(userId);
+        return ResponseEntity.ok(cart);
+    }
+
     @PatchMapping("/{cartId}/estado")
     public ResponseEntity<CartResponse> actualizarEstado(
             @PathVariable UUID cartId,

@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
-import java.time.LocalDate;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
@@ -159,6 +159,27 @@ public class CartService {
     public Page<CartResponse> findByStatus(OrderStatusEnum status, Pageable pageable) {
         return cartRepository.findByStatusOrderByAdmReceivedAtAsc(status, pageable)
                 .map(cartMapper::toResponse);
+    }
+
+    public CartWithItemsResponse findOpenCart(UUID userId){
+        CartEntity cart = cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(userId, CartStatusEnum.OPEN)
+                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+        double total = 0;
+
+        for (OrderItemEntity item : cart.getItems()){
+            if (item.isDeleted()) continue;
+
+            double subtotal = pricingService.calcular(item);
+            item.setAmount(subtotal);
+            total+=subtotal;
+        }
+
+        cart.setTotal(total);
+
+        cartRepository.save(cart);
+
+        return cartMapper.toResponseWithItems(cart);
     }
 
     private void recalcularTotal(CartEntity cart){

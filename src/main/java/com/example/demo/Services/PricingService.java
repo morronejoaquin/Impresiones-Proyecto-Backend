@@ -21,6 +21,9 @@ public class PricingService {
     public double calcular(OrderItemEntity item){
 
         PriceCalculationResponse response = calculadora(item.getPages(), item.getCopies(), item.isColor(), item.getBinding());
+        item.setPricePerSheet(response.getPricePerSheet());
+        item.setPriceRingedBinding(response.getPriceRingedBinding());
+
         return response.getTotal();
     }
 
@@ -47,13 +50,15 @@ public class PricingService {
 
         PriceCalculationResponse response = new PriceCalculationResponse();
         response.setTotal(total);
+        response.setPricePerSheet(precioHoja);
+        response.setPriceRingedBinding(bindingPrice);
 
         return response;
     }
 
     public PricesEntity obtenerPreciosVigentes(){
         return pricesRepository
-                .findFirstByValidFromLessThanEqualAndValidToGreaterThanEqual(Instant.now(), Instant.now())
+                .findFirstByValidToIsNullOrderByValidFromDesc()
                 .orElseThrow(() -> new RuntimeException("No hay precios vigentes configurados"));
 
     }

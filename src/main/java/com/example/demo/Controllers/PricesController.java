@@ -22,8 +22,8 @@ public class PricesController {
     }
 
     @PostMapping
-    public ResponseEntity<String> save(@RequestBody PricesUpdateRequest request){
-        service.save(request);
+    public ResponseEntity<String> updatePrices(@RequestBody PricesUpdateRequest request){
+        service.updatePrices(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("¨Precios nuevos creados correctamente");
     }
 

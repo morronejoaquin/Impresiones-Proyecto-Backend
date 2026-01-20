@@ -5,4 +5,6 @@ import lombok.Data;
 @Data
 public class PriceCalculationResponse {
     private double total;
+    private double pricePerSheet;
+    private double priceRingedBinding;
 }

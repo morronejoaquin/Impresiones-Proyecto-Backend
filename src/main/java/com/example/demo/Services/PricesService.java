@@ -10,7 +10,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,9 +27,32 @@ public class PricesService {
         this.pricesRepository = pricesRepository;
     }
 
-    public void save(PricesUpdateRequest request){
-        PricesEntity entity = pricesMapper.toEntity(request);
-        pricesRepository.save(entity);
+    public void updatePrices(PricesUpdateRequest request){
+
+        validatePrices(request);
+
+        Optional<PricesEntity> preciosVigentes = pricesRepository.findFirstByValidToIsNullOrderByValidFromDesc();
+
+        if(preciosVigentes.isPresent()){
+            PricesEntity entity = preciosVigentes.get();
+            entity.setValidTo(Instant.now());
+            pricesRepository.save(entity);
+        }
+
+        PricesEntity newPrices = pricesMapper.toEntity(request);
+        newPrices.setValidFrom(Instant.now());
+        newPrices.setValidTo(null);
+        pricesRepository.save(newPrices);
+    }
+
+    public void validatePrices(PricesUpdateRequest request){
+        if(request.getPricePerSheetBW() <= 0){
+            throw new IllegalArgumentException("El precio de hoja a blanco y negro no puede ser 0 o negativo");
+        }else if(request.getPricePerSheetColor() <= 0){
+            throw new IllegalArgumentException("El precio de hoja a color no puede ser 0 o negativo");
+        }else if(request.getPriceRingedBinding() <= 0){
+            throw new IllegalArgumentException("El precio de encuardernado no puede ser 0 o negativo");
+        }
     }
 
     public Page<PricesResponse> findAll(Pageable pageable){

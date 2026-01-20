@@ -44,9 +44,7 @@ public class DataLoader implements CommandLineRunner {
             prices.setPriceRingedBinding(2000);
             prices.setPricePerSheetColor(400);
             prices.setValidFrom(Instant.now());
-            String fechaString = "2026-07-20T09:00:00Z";
-            Instant instanteDesdeString = Instant.parse(fechaString);
-            prices.setValidTo(instanteDesdeString);
+            prices.setValidTo(null);
             pricesRepository.save(prices);
 
             StoreLocationEntity location = new StoreLocationEntity();

@@ -1,6 +1,7 @@
 package com.example.demo.Repositories;
 
 import com.example.demo.Model.Entities.CartEntity;
+import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.OrderStatusEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,5 +38,10 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
             @Param("to")Instant to,
             @Param("userId") UUID userId,
             Pageable pageable
+    );
+
+    Optional<CartEntity> findByUser_IdAndCartStatusAndDeletedFalse(
+            UUID userId,
+            CartStatusEnum cartStatus
     );
 }

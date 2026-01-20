@@ -9,7 +9,5 @@ public class PricesUpdateRequest {
     private double pricePerSheetBW;
     private double pricePerSheetColor;
     private double priceRingedBinding;
-    private Instant validFrom;
-    private Instant validTo;
 }
 

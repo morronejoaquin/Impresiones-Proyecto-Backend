@@ -41,6 +41,9 @@ public class OrderItemEntity {
     private int copies;
     private double amount;
 
+    private double pricePerSheet;
+    private double priceRingedBinding;
+
     private Integer imageWidth;
     private Integer imageHeight;
 
