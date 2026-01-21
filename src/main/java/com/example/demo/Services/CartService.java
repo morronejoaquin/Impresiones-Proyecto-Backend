@@ -270,4 +270,17 @@ public class CartService {
                 .toList();
     }
 
+    public OrdenesPorCarritoResponse obtenerOrdenEspecificaPorCarrito(UUID carritoId, UUID ordenId) {
+        // Validar que el carrito exista
+        CartEntity carrito = cartRepository.findById(carritoId)
+                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+        // Obtener la orden específica del carrito
+        return carrito.getItems().stream()
+                .filter(item -> item.getId().equals(ordenId) && !item.isDeleted())
+                .map(ordenesPorCarritoMapper::toResponse)
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Orden no encontrada en este carrito"));
+    }
+
 }

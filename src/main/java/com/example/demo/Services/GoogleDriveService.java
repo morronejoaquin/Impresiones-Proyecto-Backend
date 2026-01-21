@@ -33,39 +33,49 @@ public class GoogleDriveService {
     private String folderId;
 
     @PostConstruct
-    public void init() throws Exception {
-        InputStream in = getClass().getResourceAsStream("/credentials.json");
+    public void init() {
+        try {
+            InputStream in = getClass().getResourceAsStream("/credentials.json");
 
-        GoogleClientSecrets clientSecrets =
-                GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+            if (in == null) {
+                System.out.println("⚠️ Advertencia: credentials.json no encontrado. GoogleDriveService deshabilitado.");
+                return;
+            }
 
-        GoogleAuthorizationCodeFlow flow =
-                new GoogleAuthorizationCodeFlow.Builder(
-                        GoogleNetHttpTransport.newTrustedTransport(),
-                        JSON_FACTORY,
-                        clientSecrets,
-                        SCOPES
-                )
-                        .setDataStoreFactory(new FileDataStoreFactory(
-                                new java.io.File("tokens")))
-                        .setAccessType("offline")
-                        .build();
+            GoogleClientSecrets clientSecrets =
+                    GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-                .setPort(8888)
-                .build();
+            GoogleAuthorizationCodeFlow flow =
+                    new GoogleAuthorizationCodeFlow.Builder(
+                            GoogleNetHttpTransport.newTrustedTransport(),
+                            JSON_FACTORY,
+                            clientSecrets,
+                            SCOPES
+                    )
+                            .setDataStoreFactory(new FileDataStoreFactory(
+                                    new java.io.File("tokens")))
+                            .setAccessType("offline")
+                            .build();
 
-        Credential credential =
-                new AuthorizationCodeInstalledApp(flow, receiver)
-                        .authorize("user");
+            LocalServerReceiver receiver = new LocalServerReceiver.Builder()
+                    .setPort(8888)
+                    .build();
 
-        drive = new Drive.Builder(
-                GoogleNetHttpTransport.newTrustedTransport(),
-                JSON_FACTORY,
-                credential
-        )
-                .setApplicationName(APPLICATION_NAME)
-                .build();
+            Credential credential =
+                    new AuthorizationCodeInstalledApp(flow, receiver)
+                            .authorize("user");
+
+            drive = new Drive.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(),
+                    JSON_FACTORY,
+                    credential
+            )
+                    .setApplicationName(APPLICATION_NAME)
+                    .build();
+        } catch (Exception e) {
+            System.out.println("⚠️ Error inicializando GoogleDriveService: " + e.getMessage());
+            System.out.println("   La funcionalidad de Google Drive estará deshabilitada.");
+        }
     }
 
     public String uploadFile(String fileName, InputStream fileStream, String contentType) throws Exception {
@@ -91,5 +101,18 @@ public class GoogleDriveService {
                 .execute();
 
         return file.getId(); // ⬅️ ESTE ES EL driveFileId
+    }
+
+    public InputStream descargarArchivo(String driveFileId) throws Exception {
+        if (drive == null) {
+            throw new IllegalStateException("GoogleDriveService no está inicializado");
+        }
+
+        if (driveFileId == null || driveFileId.isBlank()) {
+            throw new IllegalArgumentException("ID del archivo inválido");
+        }
+
+        return drive.files().get(driveFileId)
+                .executeMediaAsInputStream();
     }
 }
