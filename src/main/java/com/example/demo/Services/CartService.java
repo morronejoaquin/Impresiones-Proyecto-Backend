@@ -2,10 +2,12 @@ package com.example.demo.Services;
 
 import com.example.demo.Model.DTOS.Mappers.CartMapper;
 import com.example.demo.Model.DTOS.Mappers.OrderItemMapper;
+import com.example.demo.Model.DTOS.Mappers.OrdenesPorCarritoMapper;
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
+import com.example.demo.Model.DTOS.Response.OrdenesPorCarritoResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.OrderItemEntity;
@@ -37,6 +39,7 @@ public class CartService {
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderItemMapper orderItemMapper;
+    private final OrdenesPorCarritoMapper ordenesPorCarritoMapper;
     private final PricingService pricingService;
 
     public CartService(CartMapper cartMapper,
@@ -44,6 +47,7 @@ public class CartService {
                        UserRepository userRepository,
                        OrderItemRepository orderItemRepository,
                        OrderItemMapper orderItemMapper,
+                       OrdenesPorCarritoMapper ordenesPorCarritoMapper,
                        PricingService pricingService) {
 
         this.cartMapper = cartMapper;
@@ -51,6 +55,7 @@ public class CartService {
         this.userRepository = userRepository;
         this.orderItemRepository = orderItemRepository;
         this.orderItemMapper = orderItemMapper;
+        this.ordenesPorCarritoMapper = ordenesPorCarritoMapper;
         this.pricingService = pricingService;
     }
 
@@ -253,5 +258,16 @@ public class CartService {
                 .map(cartMapper::toResponse);
     }
 
+    public List<OrdenesPorCarritoResponse> obtenerOrdenesPorCarrito(UUID carritoId) {
+        // Validar que el carrito exista
+        CartEntity carrito = cartRepository.findById(carritoId)
+                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+        // Obtener las órdenes activas (no eliminadas) del carrito
+        return carrito.getItems().stream()
+                .filter(item -> !item.isDeleted())
+                .map(ordenesPorCarritoMapper::toResponse)
+                .toList();
+    }
 
 }

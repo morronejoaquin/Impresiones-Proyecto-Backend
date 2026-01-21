@@ -5,6 +5,7 @@ import com.example.demo.Model.DTOS.Request.CartStatusUpdateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
+import com.example.demo.Model.DTOS.Response.OrdenesPorCarritoResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Services.CartService;
@@ -23,6 +24,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -133,6 +135,13 @@ public class CartController {
             Pageable pageable
     ){
         return service.filterCarts(status, from, to, userId, pageable);
+    }
+
+    @GetMapping("/{carritoId}/ordenes")
+    public ResponseEntity<List<OrdenesPorCarritoResponse>> obtenerOrdenesPorCarrito(
+            @PathVariable UUID carritoId){
+        List<OrdenesPorCarritoResponse> ordenes = service.obtenerOrdenesPorCarrito(carritoId);
+        return ResponseEntity.ok(ordenes);
     }
 
 }
