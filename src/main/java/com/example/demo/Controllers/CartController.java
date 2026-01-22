@@ -5,12 +5,8 @@ import com.example.demo.Model.DTOS.Request.CartStatusUpdateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
-import com.example.demo.Model.DTOS.Response.OrdenesPorCarritoResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
-import com.example.demo.Model.Entities.CartEntity;
-import com.example.demo.Model.Entities.OrderItemEntity;
 import com.example.demo.Model.Enums.OrderStatusEnum;
-import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Services.CartService;
 import com.example.demo.Services.GoogleDriveService;
 import com.example.demo.Utils.FileMetaData;
@@ -27,9 +23,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @RestController
@@ -38,12 +32,10 @@ public class CartController {
 
     private final CartService service;
     private final GoogleDriveService googleDriveService;
-    private final CartRepository cartRepository;
 
-    public CartController(CartService service, GoogleDriveService googleDriveService, CartRepository cartRepository) {
+    public CartController(CartService service, GoogleDriveService googleDriveService) {
         this.service = service;
         this.googleDriveService = googleDriveService;
-        this.cartRepository = cartRepository;
     }
 
     @PostMapping
@@ -145,17 +137,17 @@ public class CartController {
     }
 
     @GetMapping("/{carritoId}/ordenes")
-    public ResponseEntity<List<OrdenesPorCarritoResponse>> obtenerOrdenesPorCarrito(
+    public ResponseEntity<List<OrderItemResponse>> obtenerOrdenesPorCarrito(
             @PathVariable UUID carritoId){
-        List<OrdenesPorCarritoResponse> ordenes = service.obtenerOrdenesPorCarrito(carritoId);
+        List<OrderItemResponse> ordenes = service.obtenerOrdenesPorCarrito(carritoId);
         return ResponseEntity.ok(ordenes);
     }
 
     @GetMapping("/{carritoId}/ordenes/{ordenId}")
-    public ResponseEntity<OrdenesPorCarritoResponse> obtenerOrdenEspecificaPorCarrito(
+    public ResponseEntity<OrderItemResponse> obtenerOrdenEspecificaPorCarrito(
             @PathVariable UUID carritoId,
             @PathVariable UUID ordenId){
-        OrdenesPorCarritoResponse orden = service.obtenerOrdenEspecificaPorCarrito(carritoId, ordenId);
+        OrderItemResponse orden = service.obtenerOrdenEspecificaPorCarrito(carritoId, ordenId);
         return ResponseEntity.ok(orden);
     }
 
@@ -165,25 +157,17 @@ public class CartController {
             @PathVariable UUID ordenId) throws Exception {
         
         // Obtener la orden específica
-        OrdenesPorCarritoResponse orden = service.obtenerOrdenEspecificaPorCarrito(carritoId, ordenId);
-        
-        // Obtener el item de la orden para acceder al driveFileId
-        CartEntity carrito = cartRepository.findById(carritoId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
-        
-        OrderItemEntity item = carrito.getItems().stream()
-                .filter(i -> i.getId().equals(ordenId) && !i.isDeleted())
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Orden no encontrada"));
-        
+        OrderItemResponse orden = service.obtenerOrdenEspecificaPorCarrito(carritoId, ordenId);
+
         // Descargar el archivo desde Google Drive
-        InputStream fileStream = googleDriveService.descargarArchivo(item.getDriveFileId());
-        byte[] fileBytes = fileStream.readAllBytes();
-        
-        return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=\"" + item.getFileName() + "\"")
-                .header("Content-Type", item.getFileType().toString())
-                .body(fileBytes);
+        try (InputStream fileStream = googleDriveService.descargarArchivo(orden.getDriveFileId())) {
+            byte[] fileBytes = fileStream.readAllBytes();
+
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + orden.getFileName() + "\"")
+                    .header("Content-Type", orden.getFileType().getMimeType())
+                    .body(fileBytes);
+        }
     }
 
 }

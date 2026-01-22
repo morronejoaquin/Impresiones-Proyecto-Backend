@@ -2,12 +2,10 @@ package com.example.demo.Services;
 
 import com.example.demo.Model.DTOS.Mappers.CartMapper;
 import com.example.demo.Model.DTOS.Mappers.OrderItemMapper;
-import com.example.demo.Model.DTOS.Mappers.OrdenesPorCarritoMapper;
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
-import com.example.demo.Model.DTOS.Response.OrdenesPorCarritoResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.OrderItemEntity;
@@ -39,7 +37,6 @@ public class CartService {
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderItemMapper orderItemMapper;
-    private final OrdenesPorCarritoMapper ordenesPorCarritoMapper;
     private final PricingService pricingService;
 
     public CartService(CartMapper cartMapper,
@@ -47,7 +44,6 @@ public class CartService {
                        UserRepository userRepository,
                        OrderItemRepository orderItemRepository,
                        OrderItemMapper orderItemMapper,
-                       OrdenesPorCarritoMapper ordenesPorCarritoMapper,
                        PricingService pricingService) {
 
         this.cartMapper = cartMapper;
@@ -55,7 +51,6 @@ public class CartService {
         this.userRepository = userRepository;
         this.orderItemRepository = orderItemRepository;
         this.orderItemMapper = orderItemMapper;
-        this.ordenesPorCarritoMapper = ordenesPorCarritoMapper;
         this.pricingService = pricingService;
     }
 
@@ -206,6 +201,10 @@ public class CartService {
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
 
+        cart.setItems(cart.getItems().stream()
+                .filter(item -> !item.isDeleted())
+                .toList());
+
         return cartMapper.toResponseWithItems(cart);
     }
 
@@ -258,29 +257,22 @@ public class CartService {
                 .map(cartMapper::toResponse);
     }
 
-    public List<OrdenesPorCarritoResponse> obtenerOrdenesPorCarrito(UUID carritoId) {
+    public List<OrderItemResponse> obtenerOrdenesPorCarrito(UUID carritoId) {
         // Validar que el carrito exista
-        CartEntity carrito = cartRepository.findById(carritoId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        if(!cartRepository.existsById(carritoId)){
+            throw new NoSuchElementException("Carrito no encontrado");
+        }
 
-        // Obtener las órdenes activas (no eliminadas) del carrito
-        return carrito.getItems().stream()
-                .filter(item -> !item.isDeleted())
-                .map(ordenesPorCarritoMapper::toResponse)
+        return orderItemRepository.findAllByCartIdAndDeletedFalse(carritoId)
+                .stream()
+                .map(orderItemMapper::toResponse)
                 .toList();
     }
 
-    public OrdenesPorCarritoResponse obtenerOrdenEspecificaPorCarrito(UUID carritoId, UUID ordenId) {
-        // Validar que el carrito exista
-        CartEntity carrito = cartRepository.findById(carritoId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
-
-        // Obtener la orden específica del carrito
-        return carrito.getItems().stream()
-                .filter(item -> item.getId().equals(ordenId) && !item.isDeleted())
-                .map(ordenesPorCarritoMapper::toResponse)
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Orden no encontrada en este carrito"));
+    public OrderItemResponse obtenerOrdenEspecificaPorCarrito(UUID carritoId, UUID ordenId) {
+        return orderItemRepository.findByIdAndCartIdAndDeletedFalse(ordenId, carritoId)
+                .map(orderItemMapper::toResponse)
+                .orElseThrow(() -> new NoSuchElementException("La orden no existe o no pertenece a este carrito"));
     }
 
 }
