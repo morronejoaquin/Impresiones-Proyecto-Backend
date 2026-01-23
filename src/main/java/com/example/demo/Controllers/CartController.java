@@ -6,6 +6,7 @@ import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
+import com.example.demo.Model.Enums.AdminDateFilterType;
 import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Services.CartService;
 import com.example.demo.Services.GoogleDriveService;
@@ -66,14 +67,24 @@ public class CartController {
     }
 
 
-    @GetMapping("/delivered")
-    public ResponseEntity<Page<CartResponse>> getDeliveredCarts(Pageable pageable){
-        Page<CartResponse> deliveredCarts = service.findByStatus(
-            com.example.demo.Model.Enums.OrderStatusEnum.DELIVERED,
+    // Formato para enviar filtros 
+    // /delivered?date=2025-01-10T00:00:00Z&dateType=DELIVERED_AT
+    // /delivered?date=2025-01-10T00:00:00Z&dateType=ADM_RECEIVED_AT
+
+@GetMapping("/delivered")
+public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
+        @RequestParam(required = false) Instant date,
+        @RequestParam(required = false) AdminDateFilterType dateType,
+        Pageable pageable
+) {
+    Page<CartResponse> result = service.findDeliveredForAdmin(
+            date,
+            dateType,
             pageable
-        );
-        return ResponseEntity.ok(deliveredCarts);
-    }
+    );
+    return ResponseEntity.ok(result);
+}
+
     
     @GetMapping("/{id}")
     public ResponseEntity<CartResponse> getById(@PathVariable UUID id){

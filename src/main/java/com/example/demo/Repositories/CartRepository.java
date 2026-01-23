@@ -1,6 +1,7 @@
 package com.example.demo.Repositories;
 
 import com.example.demo.Model.Entities.CartEntity;
+import com.example.demo.Model.Enums.AdminDateFilterType;
 import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.OrderStatusEnum;
 import org.springframework.data.domain.Page;
@@ -44,4 +45,30 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
             UUID userId,
             CartStatusEnum cartStatus
     );
+
+    @Query("""
+SELECT c FROM CartEntity c
+WHERE c.status = :status
+  AND c.deleted = false
+  AND (
+        :date IS NULL
+        OR (
+            :dateType = 'COMPLETED_AT' AND c.completedAt >= :date
+        )
+        OR (
+            :dateType = 'DELIVERED_AT' AND c.deliveredAt >= :date
+        )
+        OR (
+            :dateType = 'ADM_RECEIVED_AT' AND c.admReceivedAt >= :date
+        )
+  )
+ORDER BY c.admReceivedAt DESC
+""")
+Page<CartEntity> findDeliveredForAdmin(
+        @Param("status") OrderStatusEnum status,
+        @Param("date") Instant date,
+        @Param("dateType") AdminDateFilterType dateType,
+        Pageable pageable
+);
+
 }

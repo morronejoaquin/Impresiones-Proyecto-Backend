@@ -10,6 +10,7 @@ import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.OrderItemEntity;
 import com.example.demo.Model.Entities.UserEntity;
+import com.example.demo.Model.Enums.AdminDateFilterType;
 import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.FileTypeEnum;
 import com.example.demo.Model.Enums.OrderStatusEnum;
@@ -160,6 +161,12 @@ public class CartService {
         return cartRepository.findByStatusOrderByAdmReceivedAtAsc(status, pageable)
                 .map(cartMapper::toResponse);
     }
+    
+    public Page<CartResponse> findDeliveredForAdmin(Instant date,AdminDateFilterType dateType,Pageable pageable){
+    return cartRepository.findDeliveredForAdmin(OrderStatusEnum.DELIVERED,date,dateType,pageable)
+    .map(cartMapper::toResponse);
+    }
+
 
     public CartWithItemsResponse findOpenCart(UUID userId){
         CartEntity cart = cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(userId, CartStatusEnum.OPEN)
