@@ -65,6 +65,16 @@ public class CartController {
         return ResponseEntity.ok(pendingCarts);
     }
 
+
+    @GetMapping("/delivered")
+    public ResponseEntity<Page<CartResponse>> getDeliveredCarts(Pageable pageable){
+        Page<CartResponse> deliveredCarts = service.findByStatus(
+            com.example.demo.Model.Enums.OrderStatusEnum.DELIVERED,
+            pageable
+        );
+        return ResponseEntity.ok(deliveredCarts);
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<CartResponse> getById(@PathVariable UUID id){
         CartResponse cart = service.findById(id);
