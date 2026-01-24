@@ -20,6 +20,9 @@ target/
 # IDEs
 .idea/
 
+# Variables de entorno
+.env
+
 # Google Drive
 src/main/resources/credentials.json
 tokens/
