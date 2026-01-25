@@ -50,13 +50,13 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token));
     }
     @GetMapping("/me")
-public ResponseEntity<UserResponse> me(Authentication authentication) {
+    public ResponseEntity<UserResponse> me(Authentication authentication) {
 
     String email = authentication.getName();
 
     UserEntity user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("User not found"));
-
+            
     return ResponseEntity.ok(userMapper.toResponse(user));
 }
 

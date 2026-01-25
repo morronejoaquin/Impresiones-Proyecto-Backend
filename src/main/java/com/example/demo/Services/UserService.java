@@ -9,6 +9,7 @@ import com.example.demo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
@@ -22,17 +23,28 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserMapper userMapper, UserRepository userRepository) {
+    public UserService(
+            UserMapper userMapper,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder
+    ) {
         this.userMapper = userMapper;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void save(UserCreateRequest request){
-        UserEntity entity = userMapper.toEntity(request);
-        userRepository.save(entity);
+    UserEntity entity = userMapper.toEntity(request);
+
+    entity.setPassword(
+        passwordEncoder.encode(request.getPassword())
+    );
+    userRepository.save(entity);
     }
+
 
     public Page<UserResponse> findAll(Pageable pageable){
         Page<UserEntity> page = userRepository.findAll(pageable);
@@ -47,20 +59,30 @@ public class UserService {
     }
 
     public void update(UUID id, Map<String, Object> camposActualizados) {
-        UserEntity entity = userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+    UserEntity entity = userRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
-        if (camposActualizados.containsKey("id")) {
-            throw new IllegalArgumentException("No está permitido modificar el campo 'id'");
+    if (camposActualizados.containsKey("id")) {
+        throw new IllegalArgumentException("No está permitido modificar el campo 'id'");
+    }
+
+    camposActualizados.forEach((key, value) -> {
+
+        if (key.equals("password")) {
+            entity.setPassword(
+                passwordEncoder.encode(value.toString())
+            );
+            return;
         }
 
-        camposActualizados.forEach((key, value) -> {
-            Field campo = ReflectionUtils.findField(OrderItemEntity.class, key);
-            if (campo != null && !key.equals("id")) {
-                campo.setAccessible(true);
-                ReflectionUtils.setField(campo, entity, value);
-            }
-        });
-        userRepository.save(entity);
-    }
+        Field campo = ReflectionUtils.findField(UserEntity.class, key);
+        if (campo != null) {
+            campo.setAccessible(true);
+            ReflectionUtils.setField(campo, entity, value);
+        }
+    });
+
+    userRepository.save(entity);
+}
+
 }

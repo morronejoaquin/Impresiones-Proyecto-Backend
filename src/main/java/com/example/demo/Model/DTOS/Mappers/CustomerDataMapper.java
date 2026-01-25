@@ -1,6 +1,6 @@
 package com.example.demo.Model.DTOS.Mappers;
 
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
 
 import com.example.demo.Model.Entities.CustomerDataEntity;
 

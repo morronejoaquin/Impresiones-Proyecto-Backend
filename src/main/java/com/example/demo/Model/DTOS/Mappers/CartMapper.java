@@ -1,7 +1,8 @@
 package com.example.demo.Model.DTOS.Mappers;
 
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.example.demo.Model.Entities.CartEntity;
 
