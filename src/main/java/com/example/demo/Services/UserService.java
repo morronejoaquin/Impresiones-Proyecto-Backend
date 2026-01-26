@@ -23,7 +23,6 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserService(
@@ -33,18 +32,7 @@ public class UserService {
     ) {
         this.userMapper = userMapper;
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
-
-    public void save(UserCreateRequest request){
-    UserEntity entity = userMapper.toEntity(request);
-
-    entity.setPassword(
-        passwordEncoder.encode(request.getPassword())
-    );
-    userRepository.save(entity);
-    }
-
 
     public Page<UserResponse> findAll(Pageable pageable){
         Page<UserEntity> page = userRepository.findAll(pageable);
@@ -68,12 +56,7 @@ public class UserService {
 
     camposActualizados.forEach((key, value) -> {
 
-        if (key.equals("password")) {
-            entity.setPassword(
-                passwordEncoder.encode(value.toString())
-            );
-            return;
-        }
+        if (key.equals("password")) return;
 
         Field campo = ReflectionUtils.findField(UserEntity.class, key);
         if (campo != null) {

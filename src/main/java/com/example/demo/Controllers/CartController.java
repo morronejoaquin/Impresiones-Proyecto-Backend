@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
@@ -40,6 +41,7 @@ public class CartController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('CREAR_CARRITO')")
     public ResponseEntity<CartResponse> save(@RequestBody CartCreateRequest request){
         CartResponse saved = service.save(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
@@ -52,6 +54,7 @@ public class CartController {
     }
 
     @PatchMapping("/close/{id}")
+    @PreAuthorize("hasAuthority('PAGAR_CARRITO')")
     public ResponseEntity<CartResponse> closeCart (@PathVariable UUID id){
         CartResponse cart = service.closeCart(id);
         return ResponseEntity.ok(cart);
@@ -94,6 +97,7 @@ public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
 
     @PatchMapping(value = "/{cartId}/agregar-item",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('CARGAR_PEDIDO')")
     public ResponseEntity<OrderItemResponse> agregar(@PathVariable UUID cartId, @RequestPart("data") String data, @RequestPart("file") MultipartFile file) throws Exception{
         service.validarFormato(file);
 
@@ -115,6 +119,7 @@ public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
     }
 
     @DeleteMapping("/{cartId}/items/{itemId}")
+    @PreAuthorize("hasAuthority('ELIMINAR_PEDIDO')")
     public ResponseEntity<String> eliminarItem(
             @PathVariable UUID cartId,
             @PathVariable UUID itemId){
@@ -130,6 +135,7 @@ public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
     }
 
     @GetMapping("/{userId}/open")
+    @PreAuthorize("hasAuthority('VER_CARRITO')")
     public ResponseEntity<CartWithItemsResponse> findOpenCart(@PathVariable UUID userId){
         CartWithItemsResponse cart = service.findOpenCart(userId);
         return ResponseEntity.ok(cart);

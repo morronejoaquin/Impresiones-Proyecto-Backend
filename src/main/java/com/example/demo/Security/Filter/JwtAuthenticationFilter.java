@@ -1,7 +1,9 @@
-package com.example.demo.Security;
+package com.example.demo.Security.Filter;
 
 import java.io.IOException;
 
+import com.example.demo.Security.Services.CustomUserDetailsService;
+import com.example.demo.Security.Services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

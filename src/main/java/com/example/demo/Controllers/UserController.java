@@ -24,12 +24,6 @@ public class UserController {
         this.service = service;
     }
 
-    @PostMapping
-    public ResponseEntity<String> save(@RequestBody UserCreateRequest request){
-        service.save(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado correctamente");
-    }
-
     @GetMapping
     public ResponseEntity<Page<UserResponse>> getAll(Pageable pageable){
         Page<UserResponse> users = service.findAll(pageable);

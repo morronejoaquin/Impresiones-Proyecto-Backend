@@ -1,13 +1,10 @@
-package com.example.demo.Security;
+package com.example.demo.Security.Services;
 
-import org.springframework.security.core.userdetails.User;
+import com.example.demo.Security.Repositories.CredentialsRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import com.example.demo.Model.Entities.UserEntity;
-import com.example.demo.Repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,21 +12,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final CredentialsRepository credentialsRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {
 
-        UserEntity user = userRepository.findByEmail(email)
+        return credentialsRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found"));
-
-        return User.builder()
-                .username(user.getEmail())
-                .password(user.getPassword())
-                .roles(user.getRole().name())
-                .build();
+                        new UsernameNotFoundException("Credenciales no encontradas para: " + email));
     }
 }
 
