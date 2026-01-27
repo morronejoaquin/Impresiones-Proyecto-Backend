@@ -1,5 +1,6 @@
 package com.example.demo.Security.Services;
 
+import com.example.demo.Exceptions.InvalidCredentialsException;
 import com.example.demo.Model.DTOS.Mappers.UserMapper;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Model.Entities.UserEntity;
@@ -53,7 +54,7 @@ public class AuthService {
                     )
             );
         } catch (AuthenticationException e) {
-            throw new RuntimeException("Email o contraseña incorrectos");
+            throw new InvalidCredentialsException("Email o contraseña incorrectos");
         }
 
         CredentialsEntity credentials = credentialsRepository.findByEmail(loginRequest.getEmail())

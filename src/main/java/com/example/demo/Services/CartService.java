@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -55,8 +56,8 @@ public class CartService {
         this.pricingService = pricingService;
     }
 
-    public CartResponse save(CartCreateRequest request){
-        UserEntity user = userRepository.findById(request.getUserId())
+    public CartResponse save(CartCreateRequest request, String email){
+        UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
         verifyCart(user.getId());
@@ -85,10 +86,14 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado")));
     }
 
-    public OrderItemResponse agregar(UUID cartId, OrderItemCreateRequest request, String driveFileId, String originalFileName, FileMetaData metadata){
+    public OrderItemResponse agregar(UUID cartId, OrderItemCreateRequest request, String driveFileId, String originalFileName, FileMetaData metadata, String email) throws AccessDeniedException{
 
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+        if (!cart.getUser().getEmail().equals(email)) {
+            throw new AccessDeniedException("No tienes permiso para modificar este carrito");
+        }
 
         if(cart.getCartStatus() != CartStatusEnum.OPEN){
             throw new IllegalStateException("El carrito no está abierto");
@@ -124,26 +129,36 @@ public class CartService {
         return orderItemMapper.toResponse(item);
     }
 
-    public CartResponse closeCart(UUID cartId){
+    public CartResponse closeCart(UUID cartId, String email) throws AccessDeniedException{
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+        if (!cart.getUser().getEmail().equals(email)) {
+            throw new AccessDeniedException("No tienes permiso para cerrar este carrito");
+        }
+
         cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
         cart.setStatus(OrderStatusEnum.PENDING);
         cart.setAdmReceivedAt(Instant.now());
         return cartMapper.toResponse(cartRepository.save(cart));
     }
 
-    public void eliminarItem(UUID cartId, UUID itemId){
+    public void eliminarItem(UUID cartId, UUID itemId, String email) throws AccessDeniedException{
 
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+        if (!cart.getUser().getEmail().equals(email)) {
+            throw new AccessDeniedException("No tienes permiso para modificar este carrito");
+        }
 
         if(cart.getCartStatus() != CartStatusEnum.OPEN){
             throw new IllegalStateException("No se pueden modificar carritos cerrados");
         }
 
         OrderItemEntity item = orderItemRepository.findByIdAndDeletedFalse(itemId)
-                .orElseThrow(() -> new NoSuchElementException("Item no encontrado"));
+                .filter(i -> i.getCart().getId().equals(cartId))
+                .orElseThrow(() -> new NoSuchElementException("Item no encontrado en este carrito"));
 
         item.setDeleted(true);
         recalcularTotal(cart);
@@ -168,8 +183,11 @@ public class CartService {
     }
 
 
-    public CartWithItemsResponse findOpenCart(UUID userId){
-        CartEntity cart = cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(userId, CartStatusEnum.OPEN)
+    public CartWithItemsResponse findOpenCart(String email){
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+
+        CartEntity cart = cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(user.getId(), CartStatusEnum.OPEN)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
 
         double total = 0;

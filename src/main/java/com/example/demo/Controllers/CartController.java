@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
@@ -42,8 +43,8 @@ public class CartController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('CREAR_CARRITO')")
-    public ResponseEntity<CartResponse> save(@RequestBody CartCreateRequest request){
-        CartResponse saved = service.save(request);
+    public ResponseEntity<CartResponse> save(@RequestBody CartCreateRequest request, Authentication authentication){
+        CartResponse saved = service.save(request, authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
@@ -55,8 +56,8 @@ public class CartController {
 
     @PatchMapping("/close/{id}")
     @PreAuthorize("hasAuthority('PAGAR_CARRITO')")
-    public ResponseEntity<CartResponse> closeCart (@PathVariable UUID id){
-        CartResponse cart = service.closeCart(id);
+    public ResponseEntity<CartResponse> closeCart (@PathVariable UUID id, Authentication authentication) throws Exception{
+        CartResponse cart = service.closeCart(id, authentication.getName());
         return ResponseEntity.ok(cart);
     }
 
@@ -69,24 +70,22 @@ public class CartController {
         return ResponseEntity.ok(pendingCarts);
     }
 
-
     // Formato para enviar filtros 
     // /delivered?date=2025-01-10T00:00:00Z&dateType=DELIVERED_AT
     // /delivered?date=2025-01-10T00:00:00Z&dateType=ADM_RECEIVED_AT
-
-@GetMapping("/delivered")
-public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
-        @RequestParam(required = false) Instant date,
-        @RequestParam(required = false) AdminDateFilterType dateType,
-        Pageable pageable
-) {
-    Page<CartResponse> result = service.findDeliveredForAdmin(
-            date,
-            dateType,
-            pageable
-    );
-    return ResponseEntity.ok(result);
-}
+    @GetMapping("/delivered")
+    public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
+            @RequestParam(required = false) Instant date,
+            @RequestParam(required = false) AdminDateFilterType dateType,
+            Pageable pageable
+    ) {
+        Page<CartResponse> result = service.findDeliveredForAdmin(
+                date,
+                dateType,
+                pageable
+        );
+        return ResponseEntity.ok(result);
+    }
 
     
     @GetMapping("/{id}")
@@ -98,7 +97,7 @@ public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
     @PatchMapping(value = "/{cartId}/agregar-item",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('CARGAR_PEDIDO')")
-    public ResponseEntity<OrderItemResponse> agregar(@PathVariable UUID cartId, @RequestPart("data") String data, @RequestPart("file") MultipartFile file) throws Exception{
+    public ResponseEntity<OrderItemResponse> agregar(@PathVariable UUID cartId, @RequestPart("data") String data, @RequestPart("file") MultipartFile file, Authentication authentication) throws Exception{
         service.validarFormato(file);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -114,7 +113,7 @@ public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
 
         String driveFileId = googleDriveService.uploadFile(file.getOriginalFilename(), new ByteArrayInputStream(bytes), file.getContentType());
 
-        OrderItemResponse agregado = service.agregar(cartId, request, driveFileId, file.getOriginalFilename(), metadata);
+        OrderItemResponse agregado = service.agregar(cartId, request, driveFileId, file.getOriginalFilename(), metadata, authentication.getName());
         return ResponseEntity.ok(agregado);
     }
 
@@ -122,9 +121,10 @@ public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
     @PreAuthorize("hasAuthority('ELIMINAR_PEDIDO')")
     public ResponseEntity<String> eliminarItem(
             @PathVariable UUID cartId,
-            @PathVariable UUID itemId){
+            @PathVariable UUID itemId,
+            Authentication authentication) throws Exception{
 
-        service.eliminarItem(cartId, itemId);
+        service.eliminarItem(cartId, itemId, authentication.getName());
         return ResponseEntity.ok().body("Item eliminado correctamente");
     }
 
@@ -136,8 +136,8 @@ public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
 
     @GetMapping("/{userId}/open")
     @PreAuthorize("hasAuthority('VER_CARRITO')")
-    public ResponseEntity<CartWithItemsResponse> findOpenCart(@PathVariable UUID userId){
-        CartWithItemsResponse cart = service.findOpenCart(userId);
+    public ResponseEntity<CartWithItemsResponse> findOpenCart(Authentication authentication){
+        CartWithItemsResponse cart = service.findOpenCart(authentication.getName());
         return ResponseEntity.ok(cart);
     }
 
