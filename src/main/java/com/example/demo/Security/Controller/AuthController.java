@@ -1,12 +1,15 @@
 package com.example.demo.Security.Controller;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Security.Services.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.Security.DTOs.AuthResponse;
 import com.example.demo.Security.DTOs.LoginRequest;
+import com.example.demo.Security.DTOs.RegisterRequest;
+import com.example.demo.Security.DTOs.RegisterResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,10 +27,38 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<?> register(
+            @RequestBody RegisterRequest request) {
+        try {
+            RegisterResponse response = authService.register(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Error al registrar el usuario: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(Authentication authentication){
         UserResponse response = authService.me(authentication);
         return ResponseEntity.ok(response);
+    }
+
+    // Clase interna para respuestas de error
+    public static class ErrorResponse {
+        public String error;
+
+        public ErrorResponse(String error) {
+            this.error = error;
+        }
+
+        public String getError() {
+            return error;
+        }
     }
 
 }

@@ -43,11 +43,13 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // Mejora: Soporte CORS
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
+                        // Endpoints públicos - sin autenticación
                         .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/auth/register").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        // Endpoints que requieren autenticación
                         .requestMatchers("/auth/me").authenticated()
-                        // Los permisos específicos de roles los manejaremos con @PreAuthorize en los Controllers
+                        // Todos los demás endpoints requieren autenticación
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint)) // Mejora
