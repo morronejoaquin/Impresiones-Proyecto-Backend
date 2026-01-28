@@ -53,26 +53,26 @@ public class UserService {
     }
 
     public void update(UUID id, Map<String, Object> camposActualizados) {
-    UserEntity entity = userRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+        UserEntity entity = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
-    if (camposActualizados.containsKey("id")) {
-        throw new IllegalArgumentException("No está permitido modificar el campo 'id'");
-    }
-
-    camposActualizados.forEach((key, value) -> {
-
-        if (key.equals("password")) return;
-
-        Field campo = ReflectionUtils.findField(UserEntity.class, key);
-        if (campo != null) {
-            campo.setAccessible(true);
-            ReflectionUtils.setField(campo, entity, value);
+        if (camposActualizados.containsKey("id")) {
+            throw new IllegalArgumentException("No está permitido modificar el campo 'id'");
         }
-    });
 
-    userRepository.save(entity);
-}
+        camposActualizados.forEach((key, value) -> {
+
+            if (key.equals("password")) return;
+
+            Field campo = ReflectionUtils.findField(UserEntity.class, key);
+            if (campo != null) {
+                campo.setAccessible(true);
+                ReflectionUtils.setField(campo, entity, value);
+            }
+        });
+
+        userRepository.save(entity);
+    }
 
     public ProfileResponse getProfile(String email) {
         UserEntity user = userRepository.findByEmail(email)

@@ -35,8 +35,7 @@ public class SecurityConfig {
     private final RestAuthenticationEntryPoint authEntryPoint;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)

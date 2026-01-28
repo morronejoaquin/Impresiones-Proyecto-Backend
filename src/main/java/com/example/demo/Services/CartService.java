@@ -168,8 +168,8 @@ public class CartService {
     }
     
     public Page<CartResponse> findAll(Pageable pageable){
-    return cartRepository.findAll(pageable)
-            .map(cartMapper::toResponse);
+        return cartRepository.findAll(pageable)
+                .map(cartMapper::toResponse);
     }
 
     public Page<CartResponse> findByStatus(OrderStatusEnum status, Pageable pageable) {
@@ -178,8 +178,8 @@ public class CartService {
     }
     
     public Page<CartResponse> findDeliveredForAdmin(Instant date,AdminDateFilterType dateType,Pageable pageable){
-    return cartRepository.findDeliveredForAdmin(OrderStatusEnum.DELIVERED,date,dateType,pageable)
-    .map(cartMapper::toResponse);
+        return cartRepository.findDeliveredForAdmin(OrderStatusEnum.DELIVERED,date,dateType,pageable)
+                .map(cartMapper::toResponse);
     }
 
 

@@ -1,8 +1,5 @@
 package com.example.demo.Controllers;
 
-import com.example.demo.Model.DTOS.Request.CartCreateRequest;
-import com.example.demo.Model.DTOS.Request.UserCreateRequest;
-import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Model.DTOS.Response.ProfileResponse;
 import com.example.demo.Services.UserService;
