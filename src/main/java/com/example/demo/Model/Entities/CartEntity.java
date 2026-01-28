@@ -9,11 +9,15 @@ import java.util.UUID;
 
 import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.OrderStatusEnum;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class CartEntity {
 
     @Id
@@ -37,6 +41,14 @@ public class CartEntity {
 
     @Enumerated(EnumType.STRING)
     private CartStatusEnum cartStatus;
+
+    @CreatedDate
+    @Column(updatable = false, nullable = false)
+    private Instant createdAt;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private Instant lastModifiedAt;
 
     private Instant completedAt;
     private Instant deliveredAt;

@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,28 +48,30 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
     );
 
     @Query("""
-SELECT c FROM CartEntity c
-WHERE c.status = :status
-  AND c.deleted = false
-  AND (
-        :date IS NULL
-        OR (
-            :dateType = 'COMPLETED_AT' AND c.completedAt >= :date
-        )
-        OR (
-            :dateType = 'DELIVERED_AT' AND c.deliveredAt >= :date
-        )
-        OR (
-            :dateType = 'ADM_RECEIVED_AT' AND c.admReceivedAt >= :date
-        )
-  )
-ORDER BY c.admReceivedAt DESC
-""")
-Page<CartEntity> findDeliveredForAdmin(
-        @Param("status") OrderStatusEnum status,
-        @Param("date") Instant date,
-        @Param("dateType") AdminDateFilterType dateType,
-        Pageable pageable
-);
+    SELECT c FROM CartEntity c
+    WHERE c.status = :status
+      AND c.deleted = false
+      AND (
+            :date IS NULL
+            OR (
+                :dateType = 'COMPLETED_AT' AND c.completedAt >= :date
+            )
+            OR (
+                :dateType = 'DELIVERED_AT' AND c.deliveredAt >= :date
+            )
+            OR (
+                :dateType = 'ADM_RECEIVED_AT' AND c.admReceivedAt >= :date
+            )
+      )
+    ORDER BY c.admReceivedAt DESC
+    """)
+    Page<CartEntity> findDeliveredForAdmin(
+            @Param("status") OrderStatusEnum status,
+            @Param("date") Instant date,
+            @Param("dateType") AdminDateFilterType dateType,
+            Pageable pageable
+    );
+
+    List<CartEntity> findByCartStatusAndLastModifiedAtBefore(CartStatusEnum status, Instant date);
 
 }

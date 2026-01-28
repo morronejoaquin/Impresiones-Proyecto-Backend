@@ -16,6 +16,8 @@ public class CartResponse {
     private CustomerDataResponse customer;
     private OrderStatusEnum status;
     private CartStatusEnum cartStatus;
+    private Instant createdAt;
+    private Instant lastModifiedAt;
     private Instant completedAt;
     private Instant deliveredAt;
     private Instant admReceivedAt;

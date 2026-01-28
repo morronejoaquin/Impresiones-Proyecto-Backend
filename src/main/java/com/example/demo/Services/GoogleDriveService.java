@@ -115,4 +115,16 @@ public class GoogleDriveService {
         return drive.files().get(driveFileId)
                 .executeMediaAsInputStream();
     }
+
+    public void deleteFile(String driveFileId) {
+        try {
+            if (driveFileId != null && !driveFileId.isEmpty()) {
+                drive.files().delete(driveFileId).execute();
+                System.out.println("Archivo eliminado de Drive: " + driveFileId);
+            }
+        } catch (Exception e) {
+            // Logueamos el error pero no frenamos el proceso
+            System.err.println("Error al eliminar archivo " + driveFileId + ": " + e.getMessage());
+        }
+    }
 }

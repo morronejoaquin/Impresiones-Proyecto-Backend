@@ -15,4 +15,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItemEntity, UUID
     Optional<OrderItemEntity> findByIdAndCartIdAndDeletedFalse(UUID id, UUID cartId);
 
     List<OrderItemEntity> findAllByCartIdAndDeletedFalse(UUID cartId);
+
+    List<OrderItemEntity> findAllByDeletedTrue();
 }
