@@ -114,4 +114,11 @@ public class AuthService {
                 .token(token)
                 .build();
     }
+
+    public void logout(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new IllegalArgumentException("Token no puede estar vacío");
+        }
+        jwtService.blacklistToken(token);
+    }
 }

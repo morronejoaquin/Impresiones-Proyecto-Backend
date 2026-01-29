@@ -1,10 +1,8 @@
 package com.example.demo.Services;
 
 import com.example.demo.Model.DTOS.Mappers.UserMapper;
-import com.example.demo.Model.DTOS.Request.UserCreateRequest;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Model.DTOS.Response.ProfileResponse;
-import com.example.demo.Model.Entities.OrderItemEntity;
 import com.example.demo.Model.Entities.UserEntity;
 import com.example.demo.Repositories.UserRepository;
 import com.example.demo.Security.Model.Entities.CredentialsEntity;

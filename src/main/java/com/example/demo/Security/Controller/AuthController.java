@@ -1,6 +1,7 @@
 package com.example.demo.Security.Controller;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Security.Services.AuthService;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -48,7 +49,34 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        try {
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                authService.logout(token);
+                return ResponseEntity.ok(new LogoutResponse("Sesión cerrada exitosamente"));
+            }
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Token no proporcionado"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Error al cerrar sesión: " + e.getMessage()));
+        }
+    }
+
+    @Getter
+    public static class LogoutResponse {
+        public String message;
+
+        public LogoutResponse(String message) {
+            this.message = message;
+        }
+
+    }
+
     // Clase interna para respuestas de error
+    @Getter
     public static class ErrorResponse {
         public String error;
 
@@ -56,9 +84,6 @@ public class AuthController {
             this.error = error;
         }
 
-        public String getError() {
-            return error;
-        }
     }
 
 }

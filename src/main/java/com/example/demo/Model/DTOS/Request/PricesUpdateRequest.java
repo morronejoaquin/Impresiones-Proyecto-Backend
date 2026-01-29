@@ -2,8 +2,6 @@ package com.example.demo.Model.DTOS.Request;
 
 import lombok.Data;
 
-import java.time.Instant;
-
 @Data
 public class PricesUpdateRequest {
     private double pricePerSheetBW;

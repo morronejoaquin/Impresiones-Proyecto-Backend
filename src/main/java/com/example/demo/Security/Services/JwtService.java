@@ -3,7 +3,11 @@ import java.util.Date;
 import java.security.Key;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
+import com.example.demo.Security.Model.Entities.TokenBlacklistEntity;
+import com.example.demo.Security.Repositories.TokenBlacklistRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -23,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtService {
 
     private final JwtProperties jwtProperties;
+    private final TokenBlacklistRepository tokenBlacklistRepository;
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
@@ -45,7 +50,27 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         return extractEmail(token).equals(userDetails.getUsername())
-                && !isTokenExpired(token);
+                && !isTokenExpired(token)
+                && isTokenNotBlacklisted(token);
+    }
+
+    public boolean isTokenNotBlacklisted(String token) {
+        return !tokenBlacklistRepository.existsByToken(token);
+    }
+
+    public void blacklistToken(String token) {
+        if (isTokenNotBlacklisted(token)) {
+            Date expirationDate = extractClaims(token).getExpiration();
+            LocalDateTime expirationDateTime = expirationDate.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+            TokenBlacklistEntity blacklistedToken = new TokenBlacklistEntity(token, expirationDateTime);
+            tokenBlacklistRepository.save(blacklistedToken);
+        }
+    }
+
+    public Date getExpirationDate(String token) {
+        return extractClaims(token).getExpiration();
     }
 
     private boolean isTokenExpired(String token) {

@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // Endpoints que requieren autenticación
                         .requestMatchers("/auth/me").authenticated()
+                        .requestMatchers("/auth/logout").authenticated()
                         // Todos los demás endpoints requieren autenticación
                         .anyRequest().authenticated()
                 )
