@@ -42,6 +42,8 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // Mejora: Soporte CORS
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/webhooks/**").permitAll()
+                        .requestMatchers("/payments/**").permitAll()
                         // Endpoints públicos - sin autenticación
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/register").permitAll()

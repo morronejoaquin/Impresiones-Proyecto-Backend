@@ -1,7 +1,9 @@
 package com.example.demo.Controllers;
 
 import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
+import com.example.demo.Model.DTOS.Response.PaymentPreferenceResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
+import com.example.demo.Services.MercadoPagoService;
 import com.example.demo.Services.PaymentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +18,11 @@ import java.util.UUID;
 public class PaymentController {
 
     private final PaymentService service;
+    private final MercadoPagoService mercadoPagoService;
 
-    public PaymentController(PaymentService service) {
+    public PaymentController(PaymentService service, MercadoPagoService mercadoPagoService) {
         this.service = service;
+        this.mercadoPagoService = mercadoPagoService;
     }
 
     @PostMapping
@@ -37,5 +41,11 @@ public class PaymentController {
     public ResponseEntity<PaymentResponse> getById(@PathVariable UUID id){
         PaymentResponse payment = service.findById(id);
         return ResponseEntity.ok(payment);
+    }
+
+    @PostMapping("/preference/{cartId}")
+    public ResponseEntity<PaymentPreferenceResponse> createPreference(@PathVariable UUID cartId) {
+        PaymentPreferenceResponse response = mercadoPagoService.createPreference(cartId);
+        return ResponseEntity.ok(response);
     }
 }

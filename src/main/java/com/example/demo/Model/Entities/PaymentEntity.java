@@ -22,6 +22,10 @@ public class PaymentEntity {
     @JoinColumn(name = "cart_id")
     private CartEntity cart;
 
+    private String mpPreferenceId;
+    private Long mpPaymentId;
+    private String mpMerchantOrderId;
+
     @Enumerated(EnumType.STRING)
     private PaymentMethodEnum paymentMethod;
 
@@ -32,5 +36,6 @@ public class PaymentEntity {
     private double depositAmount;
 
     private Instant orderDate;
+    private Instant paidAt;
 }
 
