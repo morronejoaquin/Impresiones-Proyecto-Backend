@@ -1,5 +1,6 @@
 package com.example.demo.Controllers;
 
+import com.example.demo.Model.DTOS.Request.UpdateProfileRequest;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Model.DTOS.Response.ProfileResponse;
 import com.example.demo.Services.UserService;
@@ -50,5 +51,13 @@ public class UserController {
         String email = authentication.getName();
         ProfileResponse profile = service.getProfile(email);
         return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping
+    public ResponseEntity<UserResponse> updateProfile(
+            @RequestBody UpdateProfileRequest request,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(service.updateProfile(request, authentication));
     }
 }

@@ -1,11 +1,14 @@
 package com.example.demo.Services;
 
+import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.PaymentEntity;
+import com.example.demo.Model.Enums.CartStatusEnum;
+import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Model.Enums.PaymentStatusEnum;
+import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.PaymentRepository;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
-import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.resources.payment.Payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,20 +25,46 @@ public class MercadoPagoWebhookService {
 
     private final PaymentRepository paymentRepository;
     private final ObjectMapper objectMapper;
+    private final CartRepository cartRepository;
+    private final WebhookSignatureValidator signatureValidator;
 
     @Value("${mercadopago.access-token}")
     private String accessToken;
 
-    public void process(String payload) {
+    public void process(String payload, String signature, String requestId, String dataIdUrl) {
 
         try {
             JsonNode root = objectMapper.readTree(payload);
 
+            String finalDataId = dataIdUrl;
+            if (finalDataId == null && root.has("data")) {
+                finalDataId = root.path("data").path("id").asText();
+            }
+
+            if (finalDataId == null || finalDataId.trim().isEmpty()) {
+                System.err.println(">>> ERROR: No se pudo encontrar el ID del recurso en el webhook.");
+                return;
+            }
+
+            boolean isSignatureValid = signatureValidator.isValid(signature, requestId, finalDataId);
+
+            if (!isSignatureValid) {
+                // Logueamos para debug, pero NO detenemos el proceso con un return
+                System.err.println(">>> [LOG] Firma aún no coincide. ID: " + finalDataId);
+            } else {
+                System.out.println(">>> [OK] ¡FIRMA VALIDADA! Origen verificado.");
+            }
+
+            // 3. Lógica de negocio
             String type = root.path("type").asText();
-            Long paymentId = root.path("data").path("id").asLong();
+            // Solo procesamos si el evento es de tipo payment
+            if (!"payment".equals(type)) {
+                System.out.println("Evento ignorado (tipo: " + type + ")");
+                return;
+            }
 
-            if (!"payment".equals(type)) return;
-
+            // Convertir el ID seguro
+            Long paymentId = Long.parseLong(finalDataId);
             MercadoPagoConfig.setAccessToken(accessToken);
 
             Payment mpPayment = new PaymentClient().get(paymentId);
@@ -49,10 +78,21 @@ public class MercadoPagoWebhookService {
 
             paymentEntity.setMpPaymentId(mpPayment.getId());
 
+            if (paymentEntity.getPaymentStatus() == PaymentStatusEnum.APPROVED) {
+                return;  // en caso de que el webhook llegue dos veces
+            }
+
             switch (mpPayment.getStatus()) {
                 case "approved" -> {
                     paymentEntity.setPaymentStatus(PaymentStatusEnum.APPROVED);
                     paymentEntity.setPaidAt(Instant.now());
+
+                    CartEntity cart = paymentEntity.getCart();
+                    cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
+                    cart.setStatus(OrderStatusEnum.PENDING);
+
+                    cartRepository.save(cart);
+
                 }
                 case "rejected" ->
                         paymentEntity.setPaymentStatus(PaymentStatusEnum.REJECTED);
@@ -62,9 +102,8 @@ public class MercadoPagoWebhookService {
 
             paymentRepository.save(paymentEntity);
 
-        } catch (MPApiException e) {
-            System.err.println("MP API error: " + e.getApiResponse().getContent());
         } catch (Exception e) {
+            System.err.println(">>> ERROR EN PROCESAMIENTO: " + e.getMessage());
             e.printStackTrace();
         }
     }

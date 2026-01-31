@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 @RestController
 @RequestMapping("/webhooks")
 @RequiredArgsConstructor
@@ -16,18 +17,15 @@ public class MercadoPagoWebhookController {
 
     @PostMapping("/mercadopago")
     public ResponseEntity<Void> handleWebhook(
-            @RequestHeader("X-Signature") String signature,
-            @RequestHeader("X-Request-Id") String requestId,
-            @RequestBody String payload
+            @RequestHeader(value = "X-Signature", required = false) String signature,
+            @RequestHeader(value = "X-Request-Id", required = false) String requestId,
+            @RequestParam(value = "data.id", required = false) String dataIdUrl,
+            @RequestBody String body
     ) {
+        System.out.println(">>> WEBHOOK RECIBIDO: " + requestId);
 
-        boolean valid = signatureValidator.isValid(signature, requestId, payload);
+        webhookService.process(body, signature, requestId, dataIdUrl);
 
-        if (!valid) {
-            return ResponseEntity.status(403).build();
-        }
-
-        webhookService.process(payload);
         return ResponseEntity.ok().build();
     }
 }

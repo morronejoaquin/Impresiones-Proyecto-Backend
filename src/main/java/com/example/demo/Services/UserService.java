@@ -1,6 +1,7 @@
 package com.example.demo.Services;
 
 import com.example.demo.Model.DTOS.Mappers.UserMapper;
+import com.example.demo.Model.DTOS.Request.UpdateProfileRequest;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Model.DTOS.Response.ProfileResponse;
 import com.example.demo.Model.Entities.UserEntity;
@@ -10,6 +11,7 @@ import com.example.demo.Security.Repositories.CredentialsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
@@ -93,5 +95,23 @@ public class UserService {
                 .password(credentials.getPassword())
                 .role(role)
                 .build();
+    }
+
+    public UserResponse updateProfile(
+            UpdateProfileRequest request,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        user.setName(request.getName());
+        user.setSurname(request.getSurname());
+        user.setPhone(request.getPhone());
+
+        userRepository.save(user);
+
+        return userMapper.toResponse(user);
     }
 }

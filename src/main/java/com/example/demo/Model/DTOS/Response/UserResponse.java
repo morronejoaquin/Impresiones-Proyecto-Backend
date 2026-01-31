@@ -2,6 +2,7 @@ package com.example.demo.Model.DTOS.Response;
 
 import java.util.UUID;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data

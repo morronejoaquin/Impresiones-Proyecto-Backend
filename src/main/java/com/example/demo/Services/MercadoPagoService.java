@@ -32,6 +32,8 @@ public class MercadoPagoService {
     @Value("${mercadopago.access-token}")
     private String accessToken;
 
+    @Value("${app.webhook-url}")
+    private String webhookUrl;
 
     public MercadoPagoService(CartRepository cartRepository, PaymentRepository paymentRepository) {
         this.cartRepository = cartRepository;
@@ -65,7 +67,7 @@ public class MercadoPagoService {
                 PreferenceRequest.builder()
                         .items(List.of(item))
                         .externalReference(payment.getId().toString())
-                        .notificationUrl("")
+                        .notificationUrl(webhookUrl)
                         .build();
 
         try {
