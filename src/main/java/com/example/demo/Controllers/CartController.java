@@ -1,6 +1,5 @@
 package com.example.demo.Controllers;
 
-import com.example.demo.Model.DTOS.Request.CartCreateRequest;
 import com.example.demo.Model.DTOS.Request.CartStatusUpdateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
@@ -43,8 +42,8 @@ public class CartController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('CREAR_CARRITO')")
-    public ResponseEntity<CartResponse> save(@RequestBody CartCreateRequest request, Authentication authentication){
-        CartResponse saved = service.save(request, authentication.getName());
+    public ResponseEntity<CartResponse> save(Authentication authentication){
+        CartResponse saved = service.save(authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
@@ -52,13 +51,6 @@ public class CartController {
     public ResponseEntity<Page<CartResponse>> getAll(Pageable pageable){
         Page<CartResponse> carts = service.findAll(pageable);
         return ResponseEntity.ok(carts);
-    }
-
-    @PatchMapping("/close/{id}")
-    @PreAuthorize("hasAuthority('PAGAR_CARRITO')")
-    public ResponseEntity<CartResponse> closeCart (@PathVariable UUID id, Authentication authentication) throws Exception{
-        CartResponse cart = service.closeCart(id, authentication.getName());
-        return ResponseEntity.ok(cart);
     }
 
     @GetMapping("/pending")
@@ -94,10 +86,10 @@ public class CartController {
         return ResponseEntity.ok(cart);
     }
 
-    @PatchMapping(value = "/{cartId}/agregar-item",
+    @PatchMapping(value = "/items/agregar-orden",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('CARGAR_PEDIDO')")
-    public ResponseEntity<OrderItemResponse> agregar(@PathVariable UUID cartId, @RequestPart("data") String data, @RequestPart("file") MultipartFile file, Authentication authentication) throws Exception{
+    public ResponseEntity<OrderItemResponse> agregar(@RequestPart("data") String data, @RequestPart("file") MultipartFile file, Authentication authentication) throws Exception{
         service.validarFormato(file);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -113,18 +105,17 @@ public class CartController {
 
         String driveFileId = googleDriveService.uploadFile(file.getOriginalFilename(), new ByteArrayInputStream(bytes), file.getContentType());
 
-        OrderItemResponse agregado = service.agregar(cartId, request, driveFileId, file.getOriginalFilename(), metadata, authentication.getName());
+        OrderItemResponse agregado = service.agregar(request, driveFileId, file.getOriginalFilename(), metadata, authentication.getName());
         return ResponseEntity.ok(agregado);
     }
 
-    @DeleteMapping("/{cartId}/items/{itemId}")
+    @DeleteMapping("/items/{itemId}")
     @PreAuthorize("hasAuthority('ELIMINAR_PEDIDO')")
     public ResponseEntity<String> eliminarItem(
-            @PathVariable UUID cartId,
             @PathVariable UUID itemId,
             Authentication authentication) throws Exception{
 
-        service.eliminarItem(cartId, itemId, authentication.getName());
+        service.eliminarItem(itemId, authentication.getName());
         return ResponseEntity.ok().body("Item eliminado correctamente");
     }
 
@@ -134,7 +125,7 @@ public class CartController {
         return ResponseEntity.ok(cart);
     }
 
-    @GetMapping("/{userId}/open")
+    @GetMapping("/my-cart")
     @PreAuthorize("hasAuthority('VER_CARRITO')")
     public ResponseEntity<CartWithItemsResponse> findOpenCart(Authentication authentication){
         CartWithItemsResponse cart = service.findOpenCart(authentication.getName());

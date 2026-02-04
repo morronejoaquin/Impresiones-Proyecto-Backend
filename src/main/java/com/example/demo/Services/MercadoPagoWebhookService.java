@@ -1,11 +1,13 @@
 package com.example.demo.Services;
 
 import com.example.demo.Model.Entities.CartEntity;
+import com.example.demo.Model.Entities.OrderItemEntity;
 import com.example.demo.Model.Entities.PaymentEntity;
 import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Repositories.CartRepository;
+import com.example.demo.Repositories.OrderItemRepository;
 import com.example.demo.Repositories.PaymentRepository;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
@@ -27,6 +29,8 @@ public class MercadoPagoWebhookService {
     private final ObjectMapper objectMapper;
     private final CartRepository cartRepository;
     private final WebhookSignatureValidator signatureValidator;
+    private final PricingService pricingService;
+    private final OrderItemRepository orderItemRepository;
 
     @Value("${mercadopago.access-token}")
     private String accessToken;
@@ -90,6 +94,13 @@ public class MercadoPagoWebhookService {
                     CartEntity cart = paymentEntity.getCart();
                     cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
                     cart.setStatus(OrderStatusEnum.PENDING);
+                    cart.setAdmReceivedAt(Instant.now());
+
+                    for (OrderItemEntity item : cart.getItems()){
+                        item.setPricePerSheet(pricingService.obtenerPreciosVigentes().getPricePerSheetBW());
+                        item.setPriceRingedBinding(pricingService.obtenerPreciosVigentes().getPriceRingedBinding());
+                        orderItemRepository.save(item);
+                    }
 
                     cartRepository.save(cart);
 

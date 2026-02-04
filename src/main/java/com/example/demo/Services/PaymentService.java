@@ -2,13 +2,19 @@ package com.example.demo.Services;
 
 import com.example.demo.Model.DTOS.Mappers.PaymentMapper;
 import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
+import com.example.demo.Model.DTOS.Response.CartResponse;
+import com.example.demo.Model.DTOS.Response.PaymentHistoryResponse;
+import com.example.demo.Model.DTOS.Response.PaymentPreferenceResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.PaymentEntity;
+import com.example.demo.Model.Entities.UserEntity;
 import com.example.demo.Model.Enums.CartStatusEnum;
+import com.example.demo.Model.Enums.PaymentMethodEnum;
 import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.PaymentRepository;
+import com.example.demo.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,48 +29,76 @@ public class PaymentService {
 
     private final PaymentMapper paymentMapper;
     private final PaymentRepository paymentRepository;
-    private final CartRepository cartRepository;
+    private final CartService cartService;
+    private final MercadoPagoService mercadoPagoService;
 
     @Autowired
     public PaymentService(PaymentMapper paymentMapper,
                           PaymentRepository paymentRepository,
-                          CartRepository cartRepository) {
+                          CartService cartService,
+                          CartRepository cartRepository,
+                          MercadoPagoService mercadoPagoService,
+                          UserRepository userRepository) {
         this.paymentMapper = paymentMapper;
         this.paymentRepository = paymentRepository;
-        this.cartRepository = cartRepository;
+        this.cartService = cartService;
+        this.mercadoPagoService = mercadoPagoService;
     }
 
-    public PaymentResponse save(PaymentCreateRequest request) {
-        CartEntity cart = cartRepository.findById(request.getCartId())
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
 
-        if (cart.getCartStatus() != CartStatusEnum.OPEN) {
-            throw new IllegalStateException("El carrito no está abierto. No se puede realizar el pago.");
-        }
-
-        PaymentEntity payment = paymentMapper.toEntity(request);
-        payment.setCart(cart);
-        payment.setFinalPrice(cart.getTotal());
-        payment.setOrderDate(Instant.now());
-        payment.setPaymentStatus(PaymentStatusEnum.PENDING);
-
-        paymentRepository.save(payment);
-
-        cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
-        cartRepository.save(cart);
-
-        return paymentMapper.toResponse(payment);
-    }
-
-    public Page<PaymentResponse> findAll(Pageable pageable) {
+    public Page<PaymentHistoryResponse> findAll(Pageable pageable) {
         Page<PaymentEntity> page = paymentRepository.findAll(pageable);
-        return page.map(paymentMapper::toResponse);
+        return page.map(paymentMapper::toHistoryResponse);
     }
 
-    public PaymentResponse findById(UUID id) {
+    public PaymentHistoryResponse findById(UUID id) {
         PaymentEntity entity = paymentRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Pago no encontrado"));
 
-        return paymentMapper.toResponse(entity);
+        return paymentMapper.toHistoryResponse(entity);
+    }
+
+    public PaymentResponse processCheckout(PaymentCreateRequest request, String email) {
+
+        CartEntity cart = cartService.getOpenCartForUser(email);
+
+        if(cart.getItems().isEmpty()){
+            throw new IllegalArgumentException("Agregue items antes de procesar el carrito");
+        }
+
+        // si es por mercado pago, redirige a mercadoPagoService
+        if (PaymentMethodEnum.MERCADO_PAGO.equals(request.getPaymentMethod())) {
+            PaymentPreferenceResponse url = mercadoPagoService.createPreference(cart.getId());
+            return new PaymentResponse("REDIRECT", url.getInitPoint(), null, cart.getId());
+        }
+
+        // si es efectivo, se crea el pago de forma manual
+        if (PaymentMethodEnum.CASH.equals(request.getPaymentMethod())) {
+            return processManualPayment(cart, request.getPaymentMethod());
+        }
+
+        throw new IllegalArgumentException("Método de pago no soportado");
+    }
+
+    private PaymentResponse processManualPayment(CartEntity cart, PaymentMethodEnum method) {
+
+        // Actualizar el carrito a un estado que bloquee cambios
+        CartResponse cartResponse = cartService.closeCart(cart.getId());
+
+        // Guardar registro del pago pendiente
+        PaymentEntity payment = new PaymentEntity();
+        payment.setCart(cart);
+        payment.setPaymentStatus(PaymentStatusEnum.PENDING);
+        payment.setPaymentMethod(method);
+        payment.setOrderDate(Instant.now());
+        payment.setFinalPrice(cart.getTotal());
+        payment.setDepositAmount(0);
+
+        paymentRepository.save(payment);
+
+        return new PaymentResponse("SHOW_INSTRUCTIONS",
+                null,
+                "Tu pedido ha sido registrado. Por favor, acércate al local para abonar y confirmar la producción.",
+                cart.getId());
     }
 }

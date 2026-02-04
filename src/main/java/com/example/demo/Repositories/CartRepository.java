@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Repository
 public interface CartRepository extends JpaRepository<CartEntity, UUID> {
-    Optional<CartEntity> findByUser_Id(UUID userId);
+    List<CartEntity> findByUser_Id(UUID userId);
 
     Page<CartEntity> findByStatusOrderByAdmReceivedAtAsc(
         com.example.demo.Model.Enums.OrderStatusEnum status,

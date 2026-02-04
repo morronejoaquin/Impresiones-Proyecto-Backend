@@ -25,12 +25,13 @@ public class CartEntity {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = true)
+    @JoinColumn(name = "user_id")
     private UserEntity user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
     private List<OrderItemEntity> items = new ArrayList<>();
 
+    @Column(nullable = false)
     private double total;
 
     @Embedded
@@ -40,6 +41,7 @@ public class CartEntity {
     private OrderStatusEnum status;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private CartStatusEnum cartStatus;
 
     @CreatedDate
@@ -54,6 +56,7 @@ public class CartEntity {
     private Instant deliveredAt;
     private Instant admReceivedAt;
 
+    @Column(nullable = false)
     private boolean deleted = false;
 }
 

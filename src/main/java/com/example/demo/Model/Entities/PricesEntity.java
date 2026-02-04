@@ -15,10 +15,17 @@ public class PricesEntity {
     @GeneratedValue
     private UUID id;
 
+    @Column(nullable = false)
     private double pricePerSheetBW;
+
+    @Column(nullable = false)
     private double pricePerSheetColor;
+
+    @Column(nullable = false)
     private double priceRingedBinding;
 
+    @Column(nullable = false)
     private Instant validFrom;
+
     private Instant validTo;
 }

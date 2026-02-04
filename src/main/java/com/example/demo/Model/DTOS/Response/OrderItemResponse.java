@@ -21,6 +21,8 @@ public class OrderItemResponse {
     private FileTypeEnum fileType;
     private int copies;
     private double amount;
+    private double pricePerSheet;
+    private double priceRingedBinding;
     private Integer imageWidth;
     private Integer imageHeight;
     private boolean deleted = false;

@@ -1,20 +1,16 @@
 package com.example.demo.Model.DTOS.Response;
 
-import java.time.Instant;
 import java.util.UUID;
 
-import com.example.demo.Model.Enums.PaymentMethodEnum;
-import com.example.demo.Model.Enums.PaymentStatusEnum;
-
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class PaymentResponse {
-    private UUID id;
+    private String action;
+    private String checkoutUrl;
+    private String message;
     private UUID cartId;
-    private double finalPrice;
-    private PaymentMethodEnum paymentMethod;
-    private PaymentStatusEnum paymentStatus;
-    private Instant orderDate;
 }
 

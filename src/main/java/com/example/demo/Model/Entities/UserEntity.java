@@ -13,12 +13,16 @@ public class UserEntity {
     @GeneratedValue
     private UUID id;
 
+    @Column(nullable = false, length = 100)
     private String name;
+
+    @Column(nullable = false, length = 100)
     private String surname;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(length = 30)
     private String phone;
 }
 

@@ -19,7 +19,7 @@ public class PaymentEntity {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "cart_id")
+    @JoinColumn(name = "cart_id", nullable = false)
     private CartEntity cart;
 
     private String mpPreferenceId;
@@ -27,15 +27,22 @@ public class PaymentEntity {
     private String mpMerchantOrderId;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentMethodEnum paymentMethod;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentStatusEnum paymentStatus;
 
+    @Column(nullable = false)
     private double finalPrice;
+
+    @Column(nullable = false)
     private double depositAmount;
 
+    @Column(nullable = false)
     private Instant orderDate;
+
     private Instant paidAt;
 }
 

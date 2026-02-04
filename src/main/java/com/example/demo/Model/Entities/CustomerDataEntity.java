@@ -7,8 +7,14 @@ import jakarta.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomerDataEntity {
+
+    @Column(length = 100)
     private String name;
+
+    @Column(length = 100)
     private String surname;
+
+    @Column(length = 30)
     private String phone;
 }
 

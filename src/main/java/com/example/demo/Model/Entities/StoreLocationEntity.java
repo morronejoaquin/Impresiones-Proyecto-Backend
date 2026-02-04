@@ -16,9 +16,12 @@ public class StoreLocationEntity {
     @GeneratedValue
     private UUID id;
 
+    @Column(nullable = false)
     private double lat;
+
+    @Column(nullable = false)
     private double lng;
     
-    @Column(length = 200)
+    @Column(nullable = false, length = 200)
     private String address;
 }
