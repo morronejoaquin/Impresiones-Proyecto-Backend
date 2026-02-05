@@ -24,11 +24,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -153,7 +151,7 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
     }
 
-    public void eliminarItem(UUID itemId, String email) throws AccessDeniedException{
+    public void eliminarItem(UUID itemId, String email){
 
         CartEntity cart = getOpenCartForUser(email);
 
