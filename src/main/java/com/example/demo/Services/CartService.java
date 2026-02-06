@@ -297,4 +297,16 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("La orden no existe o no pertenece a este carrito"));
     }
 
+    /**
+     * Obtiene todos los pedidos (carritos completados) del usuario, ordenados de más reciente a antiguo*/
+    public Page<CartResponse> obtenerPedidosDelUsuario(String email, Pageable pageable) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+
+        return cartRepository.findByUser_IdAndStatusNotNullAndDeletedFalseOrderByCreatedAtDesc(
+                user.getId(),
+                pageable
+        ).map(cartMapper::toResponse);
+    }
+
 }

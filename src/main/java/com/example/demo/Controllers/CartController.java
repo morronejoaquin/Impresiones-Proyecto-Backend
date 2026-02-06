@@ -187,5 +187,14 @@ public class CartController {
                     .body(fileBytes);
         }
     }
+    @GetMapping("/my-orders")
+    @PreAuthorize("hasAuthority('VER_CARRITO')")
+    public ResponseEntity<Page<CartResponse>> obtenerMisPedidos(
+            Authentication authentication,
+            Pageable pageable) {
+        Page<CartResponse> pedidos = service.obtenerPedidosDelUsuario(authentication.getName(), pageable);
+        return ResponseEntity.ok(pedidos);
+    }
+
 
 }

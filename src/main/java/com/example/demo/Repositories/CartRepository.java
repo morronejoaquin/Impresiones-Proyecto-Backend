@@ -74,4 +74,16 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
 
     List<CartEntity> findByCartStatusAndLastModifiedAtBefore(CartStatusEnum status, Instant date);
 
+    @Query("""
+    SELECT c FROM CartEntity c
+    WHERE c.user.id = :userId
+      AND c.status IS NOT NULL
+      AND c.deleted = false
+    ORDER BY c.createdAt DESC
+    """)
+    Page<CartEntity> findByUser_IdAndStatusNotNullAndDeletedFalseOrderByCreatedAtDesc(
+            @Param("userId") UUID userId,
+            Pageable pageable
+    );
+
 }
