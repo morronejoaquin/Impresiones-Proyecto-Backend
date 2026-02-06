@@ -18,6 +18,7 @@ import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.OrderItemRepository;
 import com.example.demo.Repositories.UserRepository;
 import com.example.demo.Utils.FileMetaData;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -63,7 +64,7 @@ public class CartService {
         CartEntity entity = new CartEntity();
         entity.setUser(user);
         entity.setTotal(0);
-        entity.setCustomer(new CustomerDataEntity(user.getName(), user.getPhone(), user.getSurname()));
+        entity.setCustomer(new CustomerDataEntity(user.getName(), user.getSurname(), user.getPhone()));
         entity.setCartStatus(CartStatusEnum.OPEN);
         entity.setStatus(null);
 
@@ -85,6 +86,7 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado")));
     }
 
+    @Transactional
     public OrderItemResponse agregar(OrderItemCreateRequest request, String driveFileId, String originalFileName, FileMetaData metadata, String email) {
 
         CartEntity cart = getOpenCartForUser(email);

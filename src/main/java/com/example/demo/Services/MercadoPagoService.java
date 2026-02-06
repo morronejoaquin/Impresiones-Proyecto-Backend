@@ -8,6 +8,7 @@ import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.PaymentRepository;
 import com.mercadopago.MercadoPagoConfig;
+import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
@@ -63,11 +64,19 @@ public class MercadoPagoService {
                         .unitPrice(BigDecimal.valueOf(cart.getTotal()))
                         .build();
 
+        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                .success("http://localhost:8080/order-success")
+                .pending("http://localhost:8080/order-success")
+                .failure("http://localhost:8080/cart-payment")
+                .build();
+
         PreferenceRequest request =
                 PreferenceRequest.builder()
                         .items(List.of(item))
                         .externalReference(payment.getId().toString())
                         .notificationUrl(webhookUrl)
+                        .backUrls(backUrls)
+                        .autoReturn("approved")
                         .build();
 
         try {

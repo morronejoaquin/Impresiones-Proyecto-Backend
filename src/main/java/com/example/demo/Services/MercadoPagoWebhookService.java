@@ -12,6 +12,7 @@ import com.example.demo.Repositories.PaymentRepository;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.resources.payment.Payment;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class MercadoPagoWebhookService {
     @Value("${mercadopago.access-token}")
     private String accessToken;
 
+    @Transactional
     public void process(String payload, String signature, String requestId, String dataIdUrl) {
 
         try {
