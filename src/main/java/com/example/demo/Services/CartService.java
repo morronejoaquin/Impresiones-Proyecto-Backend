@@ -39,20 +39,22 @@ public class CartService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemMapper orderItemMapper;
     private final PricingService pricingService;
+    private final NotificationService notificationService;
 
     public CartService(CartMapper cartMapper,
                        CartRepository cartRepository,
                        UserRepository userRepository,
                        OrderItemRepository orderItemRepository,
                        OrderItemMapper orderItemMapper,
-                       PricingService pricingService) {
-
+                       PricingService pricingService,
+                       NotificationService notificationService) {
         this.cartMapper = cartMapper;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
         this.orderItemRepository = orderItemRepository;
         this.orderItemMapper = orderItemMapper;
         this.pricingService = pricingService;
+        this.notificationService = notificationService;
     }
 
     public CartResponse save(String email){
@@ -236,6 +238,12 @@ public class CartService {
 
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+        // se envia notificacion al cliente
+        if (nuevoEstado == OrderStatusEnum.READY) {
+            String message = "¡Tu pedido #" + cart.getId().toString().substring(0,8) + " está listo para retirar!";
+            notificationService.createNotification(cart.getUser().getEmail(), message);
+        }
 
         // No podemos cambiar los estados en entregado o cancelado
         if (cart.getStatus() == OrderStatusEnum.DELIVERED ||
