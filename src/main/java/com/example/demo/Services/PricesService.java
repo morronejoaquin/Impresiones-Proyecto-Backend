@@ -27,7 +27,7 @@ public class PricesService {
         this.pricesRepository = pricesRepository;
     }
 
-    public void updatePrices(PricesUpdateRequest request){
+    public PricesResponse updatePrices(PricesUpdateRequest request){
 
         validatePrices(request);
 
@@ -42,7 +42,14 @@ public class PricesService {
         PricesEntity newPrices = pricesMapper.toEntity(request);
         newPrices.setValidFrom(Instant.now());
         newPrices.setValidTo(null);
-        pricesRepository.save(newPrices);
+        PricesEntity saved = pricesRepository.save(newPrices);
+        return pricesMapper.toResponse(saved);
+    }
+
+    public PricesResponse getCurrentPrices(){
+        PricesEntity entity = pricesRepository.findFirstByValidToIsNullOrderByValidFromDesc()
+                .orElseThrow(() -> new NoSuchElementException("No hay precios configurados"));
+        return pricesMapper.toResponse(entity);
     }
 
     public void validatePrices(PricesUpdateRequest request){

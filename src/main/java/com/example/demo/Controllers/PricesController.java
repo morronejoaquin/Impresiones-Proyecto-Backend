@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -22,9 +23,16 @@ public class PricesController {
     }
 
     @PostMapping
-    public ResponseEntity<String> updatePrices(@RequestBody PricesUpdateRequest request){
-        service.updatePrices(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body("¨Precios nuevos creados correctamente");
+    @PreAuthorize("hasAuthority('MODIFICAR_PRECIOS')")
+    public ResponseEntity<PricesResponse> updatePrices(@RequestBody PricesUpdateRequest request){
+        PricesResponse updated = service.updatePrices(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(updated);
+    }
+
+    @GetMapping("/current")
+    public ResponseEntity<PricesResponse> getCurrentPrices(){
+        PricesResponse current = service.getCurrentPrices();
+        return ResponseEntity.ok(current);
     }
 
     @GetMapping

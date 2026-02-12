@@ -74,7 +74,17 @@ public class AuthService {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return userMapper.toResponse(user);
+        CredentialsEntity credentials = credentialsRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Credentials not found"));
+
+        String role = credentials.getRoles().stream()
+                .map(r -> r.getRole().name())
+                .findFirst()
+                .orElse("cliente");
+
+        UserResponse response = userMapper.toResponse(user);
+        response.setRole(role);
+        return response;
     }
 
     public RegisterResponse register(RegisterRequest registerRequest) {

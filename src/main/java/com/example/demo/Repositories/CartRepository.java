@@ -86,4 +86,6 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
             Pageable pageable
     );
 
+    Page<CartEntity> findAllByDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
+
 }

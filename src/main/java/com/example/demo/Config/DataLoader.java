@@ -58,10 +58,29 @@ public class DataLoader implements CommandLineRunner {
             PermitEntity eliminarPedido = permitRepository.save(new PermitEntity(Permits.ELIMINAR_PEDIDO));
             PermitEntity verCarrito = permitRepository.save(new PermitEntity(Permits.VER_CARRITO));
             PermitEntity pagarCarrito = permitRepository.save(new PermitEntity(Permits.PAGAR_CARRITO));
+            
+            // Permisos exclusivos de admin
+            PermitEntity verTodosPedidos = permitRepository.save(new PermitEntity(Permits.VER_TODOS_PEDIDOS));
+            PermitEntity modificarEstadoPedido = permitRepository.save(new PermitEntity(Permits.MODIFICAR_ESTADO_PEDIDO));
+            PermitEntity verTodosUsuarios = permitRepository.save(new PermitEntity(Permits.VER_TODOS_USUARIOS));
+            PermitEntity modificarPrecios = permitRepository.save(new PermitEntity(Permits.MODIFICAR_PRECIOS));
+            PermitEntity verEstadisticas = permitRepository.save(new PermitEntity(Permits.VER_ESTADISTICAS));
 
-            // Agregar permisos a admin role
+            // Agregar TODOS los permisos al admin
             adminRole.addPermit(verCuenta);
+            adminRole.addPermit(crearCuenta);
             adminRole.addPermit(modificarCuenta);
+            adminRole.addPermit(eliminarCuenta);
+            adminRole.addPermit(crearCarrito);
+            adminRole.addPermit(cargarPedido);
+            adminRole.addPermit(eliminarPedido);
+            adminRole.addPermit(verCarrito);
+            adminRole.addPermit(pagarCarrito);
+            adminRole.addPermit(verTodosPedidos);
+            adminRole.addPermit(modificarEstadoPedido);
+            adminRole.addPermit(verTodosUsuarios);
+            adminRole.addPermit(modificarPrecios);
+            adminRole.addPermit(verEstadisticas);
 
             roleRepository.save(adminRole);
 
@@ -99,8 +118,25 @@ public class DataLoader implements CommandLineRunner {
 
                 credentialsRepository.save(credentials);
 
-                System.out.println("Sistema inicializado con usuario: test@test.com / cliente123");
+                System.out.println("Sistema inicializado con usuario cliente: test@test.com / cliente123");
                 System.out.println("Id: "+user.getId());
+
+                // Crear usuario Admin
+                UserEntity adminUser = new UserEntity();
+                adminUser.setName("Admin");
+                adminUser.setSurname("Sistema");
+                adminUser.setEmail("admin@admin.com");
+                adminUser.setPhone("987654321");
+                userRepository.save(adminUser);
+
+                CredentialsEntity adminCredentials = new CredentialsEntity();
+                adminCredentials.setEmail(adminUser.getEmail());
+                adminCredentials.setPassword(passwordEncoder.encode("admin123"));
+                adminCredentials.setUser(adminUser);
+                adminCredentials.setRoles(Set.of(adminRole));
+                credentialsRepository.save(adminCredentials);
+
+                System.out.println("Sistema inicializado con usuario admin: admin@admin.com / admin123");
 
             PricesEntity prices = new PricesEntity();
             prices.setPricePerSheetBW(200);

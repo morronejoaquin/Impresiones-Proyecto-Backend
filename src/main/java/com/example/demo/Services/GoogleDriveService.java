@@ -79,6 +79,11 @@ public class GoogleDriveService {
     }
 
     public String uploadFile(String fileName, InputStream fileStream, String contentType) throws Exception {
+        // Si drive no está inicializado, devolver un ID mock para desarrollo
+        if (drive == null) {
+            System.out.println("⚠️ GoogleDrive deshabilitado. Usando ID mock para: " + fileName);
+            return "mock-drive-id-" + System.currentTimeMillis();
+        }
 
         if (folderId == null || folderId.isBlank()) {
             throw new IllegalStateException("google.drive.folder-id no está configurado");
@@ -117,6 +122,10 @@ public class GoogleDriveService {
     }
 
     public void deleteFile(String driveFileId) {
+        if (drive == null) {
+            System.out.println("⚠️ GoogleDrive deshabilitado. Ignorando eliminación de: " + driveFileId);
+            return;
+        }
         try {
             if (driveFileId != null && !driveFileId.isEmpty()) {
                 drive.files().delete(driveFileId).execute();

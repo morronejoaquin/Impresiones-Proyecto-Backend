@@ -47,6 +47,13 @@ public class CartController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('VER_TODOS_PEDIDOS')")
+    public ResponseEntity<Page<CartWithItemsResponse>> getAllWithItems(Pageable pageable){
+        Page<CartWithItemsResponse> carts = service.findAllWithItems(pageable);
+        return ResponseEntity.ok(carts);
+    }
+
     @GetMapping
     public ResponseEntity<Page<CartResponse>> getAll(Pageable pageable){
         Page<CartResponse> carts = service.findAll(pageable);
@@ -133,11 +140,11 @@ public class CartController {
     }
 
     @PatchMapping("/{cartId}/estado")
-    public ResponseEntity<CartResponse> actualizarEstado(
+    public ResponseEntity<CartWithItemsResponse> actualizarEstado(
             @PathVariable UUID cartId,
             @RequestBody CartStatusUpdateRequest request){
 
-        CartResponse response =
+        CartWithItemsResponse response =
                 service.actualizarEstado(cartId, request.getStatus());
 
         return ResponseEntity.ok(response);

@@ -11,7 +11,13 @@ public enum Permits {
     CARGAR_PEDIDO,
     ELIMINAR_PEDIDO,
     VER_CARRITO,
-    PAGAR_CARRITO
+    PAGAR_CARRITO,
 
+    // Permisos de Administrador
+    VER_TODOS_PEDIDOS,
+    MODIFICAR_ESTADO_PEDIDO,
+    VER_TODOS_USUARIOS,
+    MODIFICAR_PRECIOS,
+    VER_ESTADISTICAS
 
 }
