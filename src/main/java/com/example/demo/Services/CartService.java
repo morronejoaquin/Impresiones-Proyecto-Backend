@@ -70,6 +70,7 @@ public class CartService {
         CartEntity entity = new CartEntity();
         entity.setUser(user);
         entity.setTotal(0);
+        entity.setCustomer(new CustomerDataEntity(user.getName(), user.getSurname(), user.getEmail(), user.getPhone()));
         entity.setCartStatus(CartStatusEnum.OPEN);
         entity.setStatus(null);
 
@@ -85,6 +86,7 @@ public class CartService {
         CartEntity entity = cartMapper.toEntity(request);
         entity.setUser(user);
         entity.setTotal(0);
+        entity.setCustomer(new CustomerDataEntity(user.getName(), user.getSurname(), user.getEmail(), user.getPhone()));
         entity.setCartStatus(CartStatusEnum.OPEN);
         entity.setStatus(null);
 

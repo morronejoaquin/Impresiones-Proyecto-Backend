@@ -64,29 +64,6 @@ public class AuthService {
         return new AuthResponse(token);
     }
 
-    public UserResponse me(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("No hay una sesión activa");
-        }
-
-        String email = authentication.getName();
-
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        CredentialsEntity credentials = credentialsRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Credentials not found"));
-
-        String role = credentials.getRoles().stream()
-                .map(r -> r.getRole().name())
-                .findFirst()
-                .orElse("cliente");
-
-        UserResponse response = userMapper.toResponse(user);
-        response.setRole(role);
-        return response;
-    }
-
     public RegisterResponse register(RegisterRequest registerRequest) {
         // Validar que el email no esté registrado
         if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {

@@ -43,12 +43,6 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(Authentication authentication){
-        UserResponse response = authService.me(authentication);
-        return ResponseEntity.ok(response);
-    }
-
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
         try {

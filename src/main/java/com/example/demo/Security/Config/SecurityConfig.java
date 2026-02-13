@@ -48,18 +48,26 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // Mejora: Soporte CORS
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 1. ENDPOINTS PÚBLICOS
                         .requestMatchers("/webhooks/**").permitAll()
-                        .requestMatchers("/payments/**").permitAll()
-                        // Endpoints públicos - sin autenticación
-                        .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/auth/register").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/prices/current").permitAll()
-                        .requestMatchers("/prices").permitAll()
-                        // Endpoints que requieren autenticación
+                        .requestMatchers("/store/location").permitAll()
+                        .requestMatchers("/calculator/calculate").permitAll() // Calculadora es pública
+
+                        // 2. ENDPOINTS DE USUARIO AUTENTICADO (General)
                         .requestMatchers("/users/profile").authenticated()
-                        .requestMatchers("/auth/logout").authenticated()
-                        // Todos los demás endpoints requieren autenticación
+                        .requestMatchers("/users/my-cart").authenticated()
+                        .requestMatchers("/notifications/**").authenticated()
+                        .requestMatchers("/payments/checkout").authenticated()
+
+                        // 3. GESTIÓN DE CARRITOS Y PEDIDOS (Requieren roles/permisos específicos)
+                        .requestMatchers("/carts/**").authenticated()
+                        .requestMatchers("/orderItems/**").authenticated()
+                        .requestMatchers("/prices/**").authenticated() // GET público, POST admin
+
+                        // 4. CUALQUIER OTRA PETICIÓN
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint)) // Mejora

@@ -147,8 +147,8 @@ public class DataLoader implements CommandLineRunner {
             pricesRepository.save(prices);
 
             StoreLocationEntity location = new StoreLocationEntity();
-            location.setLat(38.02226);
-            location.setLng(57.33085);
+            location.setLat(-38.039534600624734);
+            location.setLng(-57.55232818919287);
             location.setAddress("7600, Magallanes 3899, B7603 Mar del Plata, Provincia de Buenos Aires");
             storeLocationRepository.save(location);
             }

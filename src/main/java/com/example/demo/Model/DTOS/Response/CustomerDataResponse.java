@@ -5,5 +5,6 @@ import lombok.Data;
 public class CustomerDataResponse {
     private String name;
     private String surname;
+    private String email;
     private String phone;
 }
