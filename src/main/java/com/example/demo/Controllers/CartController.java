@@ -204,4 +204,10 @@ public class CartController {
     }
 
 
+@GetMapping("/admin/orders")
+@PreAuthorize("hasRole('administrador')")
+public ResponseEntity<Page<CartResponse>> getActiveCartsForAdmin(Pageable pageable){
+    Page<CartResponse> carts = service.getActiveCartsForAdmin(pageable);
+    return ResponseEntity.ok(carts);
+}
 }

@@ -375,4 +375,17 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("La orden no existe o no pertenece a este carrito"));
     }
 
+    // Obtener carritos pendientes y activos para el admin (PENDING, PRINTING, BINDING, READY)
+public Page<CartResponse> getActiveCartsForAdmin(Pageable pageable) {
+    return cartRepository.findAllByStatusInAndDeletedFalseOrderByAdmReceivedAtAsc(
+            new java.util.ArrayList<>(java.util.List.of(
+                    OrderStatusEnum.PENDING,
+                    OrderStatusEnum.PRINTING,
+                    OrderStatusEnum.BINDING,
+                    OrderStatusEnum.READY
+            )),
+            pageable
+    ).map(cartMapper::toResponse);
+}
+
 }
