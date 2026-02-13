@@ -210,4 +210,17 @@ public ResponseEntity<Page<CartResponse>> getActiveCartsForAdmin(Pageable pageab
     Page<CartResponse> carts = service.getActiveCartsForAdmin(pageable);
     return ResponseEntity.ok(carts);
 }
+
+@GetMapping("/admin/filter")
+@PreAuthorize("hasRole('administrador')")
+public ResponseEntity<Page<CartResponse>> filterCartsForAdmin(
+        @RequestParam(required = false) OrderStatusEnum status,
+        @RequestParam(required = false) String startDate,
+        @RequestParam(required = false) String endDate,
+        @RequestParam(required = false) String customerEmail,
+        Pageable pageable
+){
+    Page<CartResponse> carts = service.filterCartsForAdmin(status, startDate, endDate, customerEmail, pageable);
+    return ResponseEntity.ok(carts);
+}
 }
