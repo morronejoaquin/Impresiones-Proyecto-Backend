@@ -57,7 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/prices/current").permitAll()
                         .requestMatchers("/prices").permitAll()
                         // Endpoints que requieren autenticación
-                        .requestMatchers("/auth/me").authenticated()
+                        .requestMatchers("/users/profile").authenticated()
                         .requestMatchers("/auth/logout").authenticated()
                         // Todos los demás endpoints requieren autenticación
                         .anyRequest().authenticated()
