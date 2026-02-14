@@ -4,6 +4,7 @@ import com.example.demo.Model.DTOS.Request.UpdateProfileRequest;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Model.DTOS.Response.ProfileResponse;
 import com.example.demo.Services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -55,9 +56,12 @@ public class UserController {
 
     @PutMapping
     public ResponseEntity<UserResponse> updateProfile(
-            @RequestBody UpdateProfileRequest request,
+            @Valid @RequestBody UpdateProfileRequest request,
             Authentication authentication
     ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return ResponseEntity.ok(service.updateProfile(request, authentication));
     }
 }
