@@ -211,9 +211,13 @@ public class CartService {
         CartEntity cart = cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(userId, CartStatusEnum.OPEN)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
 
+        List<OrderItemEntity> activeItems = cart.getItems().stream()
+                .filter(item -> !item.isDeleted())
+                .toList();
+
         double total = 0;
 
-        for (OrderItemEntity item : cart.getItems()){
+        for (OrderItemEntity item : activeItems){
             if (item.isDeleted()) continue;
 
             double subtotal = pricingService.calcular(item);
@@ -224,6 +228,8 @@ public class CartService {
         cart.setTotal(total);
 
         cartRepository.save(cart);
+
+        cart.setItems(activeItems);
 
         return cartMapper.toResponseWithItems(cart);
     }
