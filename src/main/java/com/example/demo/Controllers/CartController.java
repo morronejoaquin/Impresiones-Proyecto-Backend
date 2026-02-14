@@ -223,4 +223,15 @@ public ResponseEntity<Page<CartResponse>> filterCartsForAdmin(
     Page<CartResponse> carts = service.filterCartsForAdmin(status, startDate, endDate, customerEmail, pageable);
     return ResponseEntity.ok(carts);
 }
+
+@GetMapping("/admin/history")
+@PreAuthorize("hasRole('administrador')")
+public ResponseEntity<Page<CartResponse>> getDeliveredHistory(
+        @RequestParam(required = false) String startDate,
+        @RequestParam(required = false) String endDate,
+        Pageable pageable
+){
+    Page<CartResponse> carts = service.getDeliveredHistory(startDate, endDate, pageable);
+    return ResponseEntity.ok(carts);
+}
 }

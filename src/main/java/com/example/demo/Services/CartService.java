@@ -377,7 +377,7 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("La orden no existe o no pertenece a este carrito"));
     }
 
-    public Page<CartResponse> getActiveCartsForAdmin(Pageable pageable) {
+public Page<CartResponse> getActiveCartsForAdmin(Pageable pageable) {
     return cartRepository.findAllByStatusInAndDeletedFalseOrderByAdmReceivedAtAsc(
             new java.util.ArrayList<>(java.util.List.of(
                     OrderStatusEnum.PENDING,
@@ -391,6 +391,11 @@ public class CartService {
 
 public Page<CartResponse> filterCartsForAdmin(String status, String startDate, String endDate, String customerEmail, Pageable pageable) {
     return cartRepository.filterCartsForAdmin(status, startDate, endDate, customerEmail, pageable)
+            .map(cartMapper::toResponse);
+}
+
+public Page<CartResponse> getDeliveredHistory(String startDate, String endDate, Pageable pageable) {
+    return cartRepository.getDeliveredHistory(startDate, endDate, pageable)
             .map(cartMapper::toResponse);
 }
 

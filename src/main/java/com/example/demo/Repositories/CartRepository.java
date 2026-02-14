@@ -88,40 +88,58 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
 
     Page<CartEntity> findAllByDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
 
-Page<CartEntity> findAllByStatusInAndDeletedFalseOrderByAdmReceivedAtAsc(
-        java.util.List<OrderStatusEnum> statuses,
-        Pageable pageable
-);
+    Page<CartEntity> findAllByStatusInAndDeletedFalseOrderByAdmReceivedAtAsc(
+            java.util.List<OrderStatusEnum> statuses,
+            Pageable pageable
+    );
 
-@Query("""
-SELECT c FROM CartEntity c
-WHERE (
-    :status IS NULL OR c.status = CAST(:status AS com.example.demo.Model.Enums.OrderStatusEnum)
-)
-AND (
-    :startDate IS NULL OR c.admReceivedAt >= CAST(:startDate AS java.time.Instant)
-)
-AND (
-    :endDate IS NULL OR c.admReceivedAt <= CAST(:endDate AS java.time.Instant)
-)
-AND (
-    :customerEmail IS NULL OR LOWER(c.customer.email) LIKE LOWER(CONCAT('%', :customerEmail, '%'))
-)
-AND c.status IN (
-    com.example.demo.Model.Enums.OrderStatusEnum.PENDING,
-    com.example.demo.Model.Enums.OrderStatusEnum.PRINTING,
-    com.example.demo.Model.Enums.OrderStatusEnum.BINDING,
-    com.example.demo.Model.Enums.OrderStatusEnum.READY
-)
-AND c.deleted = false
-ORDER BY c.admReceivedAt DESC
-""")
-Page<CartEntity> filterCartsForAdmin(
-        @Param("status") String status,
-        @Param("startDate") String startDate,
-        @Param("endDate") String endDate,
-        @Param("customerEmail") String customerEmail,
-        Pageable pageable
-);
+    @Query("""
+    SELECT c FROM CartEntity c
+    WHERE (
+        :status IS NULL OR c.status = CAST(:status AS com.example.demo.Model.Enums.OrderStatusEnum)
+    )
+    AND (
+        :startDate IS NULL OR c.admReceivedAt >= CAST(:startDate AS java.time.Instant)
+    )
+    AND (
+        :endDate IS NULL OR c.admReceivedAt <= CAST(:endDate AS java.time.Instant)
+    )
+    AND (
+        :customerEmail IS NULL OR LOWER(c.customer.email) LIKE LOWER(CONCAT('%', :customerEmail, '%'))
+    )
+    AND c.status IN (
+        com.example.demo.Model.Enums.OrderStatusEnum.PENDING,
+        com.example.demo.Model.Enums.OrderStatusEnum.PRINTING,
+        com.example.demo.Model.Enums.OrderStatusEnum.BINDING,
+        com.example.demo.Model.Enums.OrderStatusEnum.READY
+    )
+    AND c.deleted = false
+    ORDER BY c.admReceivedAt DESC
+    """)
+    Page<CartEntity> filterCartsForAdmin(
+            @Param("status") String status,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            @Param("customerEmail") String customerEmail,
+            Pageable pageable
+    );
+
+    @Query("""
+    SELECT c FROM CartEntity c
+    WHERE c.status = com.example.demo.Model.Enums.OrderStatusEnum.DELIVERED
+    AND (
+        :startDate IS NULL OR c.createdAt >= CAST(:startDate AS java.time.Instant)
+    )
+    AND (
+        :endDate IS NULL OR c.deliveredAt <= CAST(:endDate AS java.time.Instant)
+    )
+    AND c.deleted = false
+    ORDER BY c.deliveredAt DESC
+    """)
+    Page<CartEntity> getDeliveredHistory(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
+            Pageable pageable
+    );
 
 }
