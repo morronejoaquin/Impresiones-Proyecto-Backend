@@ -71,11 +71,8 @@ public class DataLoader implements CommandLineRunner {
             adminRole.addPermit(crearCuenta);
             adminRole.addPermit(modificarCuenta);
             adminRole.addPermit(eliminarCuenta);
-            adminRole.addPermit(crearCarrito);
-            adminRole.addPermit(cargarPedido);
             adminRole.addPermit(eliminarPedido);
             adminRole.addPermit(verCarrito);
-            adminRole.addPermit(pagarCarrito);
             adminRole.addPermit(verTodosPedidos);
             adminRole.addPermit(modificarEstadoPedido);
             adminRole.addPermit(verTodosUsuarios);

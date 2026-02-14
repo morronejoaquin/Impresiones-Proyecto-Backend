@@ -220,7 +220,7 @@ public ResponseEntity<Page<CartResponse>> filterCartsForAdmin(
         @RequestParam(required = false) String customerEmail,
         Pageable pageable
 ){
-    Page<CartResponse> carts = service.filterCartsForAdmin(status, startDate, endDate, customerEmail, pageable);
+    Page<CartResponse> carts = service.filterCartsForAdmin(status.toString(), startDate, endDate, customerEmail, pageable);
     return ResponseEntity.ok(carts);
 }
 
