@@ -1,7 +1,7 @@
 package com.example.demo.Controllers;
 
 import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
-import com.example.demo.Model.DTOS.Response.PaymentHistoryResponse;
+import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
 import com.example.demo.Services.PaymentService;
 import org.springframework.data.domain.Page;
@@ -23,14 +23,14 @@ public class PaymentController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PaymentHistoryResponse>> getAll(Pageable pageable){
-        Page<PaymentHistoryResponse> payments = service.findAll(pageable);
+    public ResponseEntity<Page<CartHistoryResponse>> getAll(Pageable pageable){
+        Page<CartHistoryResponse> payments = service.findAll(pageable);
         return ResponseEntity.ok(payments);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentHistoryResponse> getById(@PathVariable UUID id){
-        PaymentHistoryResponse payment = service.findById(id);
+    public ResponseEntity<CartHistoryResponse> getById(@PathVariable UUID id){
+        CartHistoryResponse payment = service.findById(id);
         return ResponseEntity.ok(payment);
     }
 

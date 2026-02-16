@@ -48,27 +48,38 @@ public class MercadoPagoService {
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
 
-        PaymentEntity payment = new PaymentEntity();
-        payment.setCart(cart);
-        payment.setFinalPrice(cart.getTotal());
-        payment.setPaymentMethod(PaymentMethodEnum.MERCADO_PAGO);
-        payment.setPaymentStatus(PaymentStatusEnum.PENDING);
-        payment.setOrderDate(Instant.now());
+        // 1. BUSCAR si ya existe un pago PENDING para este carrito
+        PaymentEntity payment = paymentRepository.findByCartAndPaymentStatus(cart, PaymentStatusEnum.PENDING)
+                .orElseGet(() -> {
+                    // Si no existe, CREAMOS uno nuevo
+                    PaymentEntity newPayment = new PaymentEntity();
+                    newPayment.setCart(cart);
+                    newPayment.setFinalPrice(cart.getTotal());
+                    newPayment.setPaymentMethod(PaymentMethodEnum.MERCADO_PAGO);
+                    newPayment.setPaymentStatus(PaymentStatusEnum.PENDING);
+                    newPayment.setOrderDate(Instant.now());
+                    newPayment.setDepositAmount(0); // Para evitar error de null en la DB
+                    return paymentRepository.save(newPayment);
+                });
 
+        payment.setFinalPrice(cart.getTotal());
         payment = paymentRepository.save(payment);
 
-        PreferenceItemRequest item =
-                PreferenceItemRequest.builder()
-                        .title("Orden de impresión")
-                        .quantity(1)
-                        .unitPrice(BigDecimal.valueOf(cart.getTotal()))
-                        .build();
+        PreferenceItemRequest item = PreferenceItemRequest.builder()
+                .title("Orden de impresión #" + cart.getId())
+                .quantity(1)
+                .unitPrice(BigDecimal.valueOf(cart.getTotal()))
+                .build();
 
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success("http://localhost:8080/order-success")
-                .pending("http://localhost:8080/order-success")
-                .failure("http://localhost:8080/cart-payment")
+                .success("http://localhost:4200/order-received")
+                .pending("http://localhost:4200/order-received")
+                .failure("http://localhost:4200/cart-payment")
                 .build();
+
+        System.out.println(backUrls.getSuccess());
+        System.out.println(backUrls.getPending());
+        System.out.println(backUrls.getFailure());
 
         PreferenceRequest request =
                 PreferenceRequest.builder()
@@ -76,7 +87,7 @@ public class MercadoPagoService {
                         .externalReference(payment.getId().toString())
                         .notificationUrl(webhookUrl)
                         .backUrls(backUrls)
-                        .autoReturn("approved")
+                        // .autoReturn("approved") esto se desactiva hasta que tengamos un servidor real
                         .build();
 
         try {

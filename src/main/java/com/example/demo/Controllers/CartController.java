@@ -2,6 +2,7 @@ package com.example.demo.Controllers;
 
 import com.example.demo.Model.DTOS.Request.CartStatusUpdateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
+import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
@@ -196,10 +197,10 @@ public class CartController {
     }
     @GetMapping("/my-orders")
     @PreAuthorize("hasAuthority('VER_CARRITO')")
-    public ResponseEntity<Page<CartResponse>> obtenerMisPedidos(
+    public ResponseEntity<Page<CartHistoryResponse>> obtenerMisPedidos(
             Authentication authentication,
             Pageable pageable) {
-        Page<CartResponse> pedidos = service.obtenerPedidosDelUsuario(authentication.getName(), pageable);
+        Page<CartHistoryResponse> pedidos = service.obtenerPedidosDelUsuario(authentication.getName(), pageable);
         return ResponseEntity.ok(pedidos);
     }
 

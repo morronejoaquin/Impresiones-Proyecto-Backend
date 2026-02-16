@@ -3,13 +3,11 @@ package com.example.demo.Services;
 import com.example.demo.Model.DTOS.Mappers.PaymentMapper;
 import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
-import com.example.demo.Model.DTOS.Response.PaymentHistoryResponse;
+import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import com.example.demo.Model.DTOS.Response.PaymentPreferenceResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.PaymentEntity;
-import com.example.demo.Model.Entities.UserEntity;
-import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.PaymentMethodEnum;
 import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Repositories.CartRepository;
@@ -46,12 +44,12 @@ public class PaymentService {
     }
 
 
-    public Page<PaymentHistoryResponse> findAll(Pageable pageable) {
+    public Page<CartHistoryResponse> findAll(Pageable pageable) {
         Page<PaymentEntity> page = paymentRepository.findAll(pageable);
         return page.map(paymentMapper::toHistoryResponse);
     }
 
-    public PaymentHistoryResponse findById(UUID id) {
+    public CartHistoryResponse findById(UUID id) {
         PaymentEntity entity = paymentRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Pago no encontrado"));
 

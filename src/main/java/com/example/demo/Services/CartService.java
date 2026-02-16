@@ -4,19 +4,18 @@ import com.example.demo.Model.DTOS.Mappers.CartMapper;
 import com.example.demo.Model.DTOS.Mappers.OrderItemMapper;
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
+import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
-import com.example.demo.Model.Entities.CartEntity;
-import com.example.demo.Model.Entities.CustomerDataEntity;
-import com.example.demo.Model.Entities.OrderItemEntity;
-import com.example.demo.Model.Entities.UserEntity;
+import com.example.demo.Model.Entities.*;
 import com.example.demo.Model.Enums.AdminDateFilterType;
 import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.FileTypeEnum;
 import com.example.demo.Model.Enums.OrderStatusEnum;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.OrderItemRepository;
+import com.example.demo.Repositories.PaymentRepository;
 import com.example.demo.Repositories.UserRepository;
 import com.example.demo.Utils.FileMetaData;
 import org.springframework.data.domain.Page;
@@ -40,20 +39,16 @@ public class CartService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemMapper orderItemMapper;
     private final PricingService pricingService;
+    private final PaymentRepository paymentRepository;
 
-    public CartService(CartMapper cartMapper,
-                       CartRepository cartRepository,
-                       UserRepository userRepository,
-                       OrderItemRepository orderItemRepository,
-                       OrderItemMapper orderItemMapper,
-                       PricingService pricingService) {
-
+    public CartService(CartMapper cartMapper, CartRepository cartRepository, UserRepository userRepository, OrderItemRepository orderItemRepository, OrderItemMapper orderItemMapper, PricingService pricingService, PaymentRepository paymentRepository) {
         this.cartMapper = cartMapper;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
         this.orderItemRepository = orderItemRepository;
         this.orderItemMapper = orderItemMapper;
         this.pricingService = pricingService;
+        this.paymentRepository = paymentRepository;
     }
 
     // Método auxiliar para obtener usuario por email
@@ -284,10 +279,29 @@ public class CartService {
     }
 
     // Obtener pedidos del usuario (carritos no abiertos)
-    public Page<CartResponse> obtenerPedidosDelUsuario(String email, Pageable pageable) {
-        UserEntity user = getUserByEmail(email);
-        return cartRepository.findByUser_IdAndStatusNotNullAndDeletedFalseOrderByCreatedAtDesc(user.getId(), pageable)
-                .map(cartMapper::toResponse);
+    public Page<CartHistoryResponse> obtenerPedidosDelUsuario(String email, Pageable pageable) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+
+        Page<CartEntity> carritos = cartRepository.findByUser_IdAndStatusNotNullAndDeletedFalseOrderByCreatedAtDesc(
+                user.getId(), pageable);
+
+        return carritos.map(cart -> {
+            PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cart.getId())
+                    .orElse(null);
+
+            return CartHistoryResponse.builder()
+                    .cartId(cart.getId())
+                    .createdAt(cart.getCreatedAt())
+                    .status(cart.getStatus())
+                    .total(cart.getTotal())
+                    .paymentMethod(payment != null ? payment.getPaymentMethod().name() : "N/A")
+                    .paymentStatus(payment != null ? payment.getPaymentStatus().name() : "UNKNOWN")
+                    .items(cart.getItems().stream()
+                            .map(orderItemMapper::toResponse) // Usa tu mapper actual para los ítems
+                            .toList())
+                    .build();
+        });
     }
 
     private void recalcularTotal(CartEntity cart){

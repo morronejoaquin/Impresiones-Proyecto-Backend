@@ -1,6 +1,6 @@
 package com.example.demo.Model.DTOS.Mappers;
 
-import com.example.demo.Model.DTOS.Response.PaymentHistoryResponse;
+import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -18,6 +18,6 @@ public interface PaymentMapper {
     PaymentEntity toEntity(PaymentCreateRequest req);
 
     @Mapping(source = "cart.id", target = "cartId")
-    PaymentHistoryResponse toHistoryResponse(PaymentEntity entity);
+    CartHistoryResponse toHistoryResponse(PaymentEntity entity);
 }
 
