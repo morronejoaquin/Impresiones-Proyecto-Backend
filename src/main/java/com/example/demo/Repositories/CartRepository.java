@@ -95,18 +95,10 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
 
     @Query("""
     SELECT c FROM CartEntity c
-    WHERE (
-        :status IS NULL OR c.status = CAST(:status AS com.example.demo.Model.Enums.OrderStatusEnum)
-    )
-    AND (
-        :startDate IS NULL OR c.admReceivedAt >= CAST(:startDate AS java.time.Instant)
-    )
-    AND (
-        :endDate IS NULL OR c.admReceivedAt <= CAST(:endDate AS java.time.Instant)
-    )
-    AND (
-        :customerEmail IS NULL OR LOWER(c.customer.email) LIKE LOWER(CONCAT('%', :customerEmail, '%'))
-    )
+    WHERE (:status IS NULL OR c.status = :status)
+    AND (:startDate IS NULL OR c.admReceivedAt >= :startDate)
+    AND (:endDate IS NULL OR c.admReceivedAt <= :endDate)
+    AND (:customerEmail IS NULL OR LOWER(c.customer.email) LIKE LOWER(CONCAT('%', :customerEmail, '%')))
     AND c.status IN (
         com.example.demo.Model.Enums.OrderStatusEnum.PENDING,
         com.example.demo.Model.Enums.OrderStatusEnum.PRINTING,
@@ -117,9 +109,9 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
     ORDER BY c.admReceivedAt DESC
     """)
     Page<CartEntity> filterCartsForAdmin(
-            @Param("status") String status,
-            @Param("startDate") String startDate,
-            @Param("endDate") String endDate,
+            @Param("status") OrderStatusEnum status,
+            @Param("startDate") Instant startDate,
+            @Param("endDate") Instant endDate,
             @Param("customerEmail") String customerEmail,
             Pageable pageable
     );

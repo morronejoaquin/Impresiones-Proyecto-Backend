@@ -25,6 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -397,26 +400,37 @@ public class CartService {
                 .orElseThrow(() -> new NoSuchElementException("La orden no existe o no pertenece a este carrito"));
     }
 
-public Page<CartResponse> getActiveCartsForAdmin(Pageable pageable) {
-    return cartRepository.findAllByStatusInAndDeletedFalseOrderByAdmReceivedAtAsc(
-            new java.util.ArrayList<>(java.util.List.of(
-                    OrderStatusEnum.PENDING,
-                    OrderStatusEnum.PRINTING,
-                    OrderStatusEnum.BINDING,
-                    OrderStatusEnum.READY
-            )),
-            pageable
-    ).map(cartMapper::toResponse);
-}
+    public Page<CartResponse> getActiveCartsForAdmin(Pageable pageable) {
+        return cartRepository.findAllByStatusInAndDeletedFalseOrderByAdmReceivedAtAsc(
+                new java.util.ArrayList<>(java.util.List.of(
+                        OrderStatusEnum.PENDING,
+                        OrderStatusEnum.PRINTING,
+                        OrderStatusEnum.BINDING,
+                        OrderStatusEnum.READY
+                )),
+                pageable
+        ).map(cartMapper::toResponse);
+    }
 
-public Page<CartResponse> filterCartsForAdmin(String status, String startDate, String endDate, String customerEmail, Pageable pageable) {
-    return cartRepository.filterCartsForAdmin(status, startDate, endDate, customerEmail, pageable)
-            .map(cartMapper::toResponse);
-}
+    public Page<CartResponse> filterCartsForAdmin(OrderStatusEnum status, String startDate, String endDate, String customerEmail, Pageable pageable) {
+        Instant start = null;
+        Instant end = null;
 
-public Page<CartResponse> getDeliveredHistory(String startDate, String endDate, Pageable pageable) {
-    return cartRepository.getDeliveredHistory(startDate, endDate, pageable)
-            .map(cartMapper::toResponse);
-}
+        // Convertimos las fechas de String a Instant
+        if (startDate != null && !startDate.isBlank()) {
+            start = LocalDate.parse(startDate).atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+        if (endDate != null && !endDate.isBlank()) {
+            end = LocalDate.parse(endDate).atTime(LocalTime.MAX).atZone(ZoneOffset.UTC).toInstant();
+        }
+
+        return cartRepository.filterCartsForAdmin(status, start, end, customerEmail, pageable)
+                .map(cartMapper::toResponse);
+    }
+
+    public Page<CartResponse> getDeliveredHistory(String startDate, String endDate, Pageable pageable) {
+        return cartRepository.getDeliveredHistory(startDate, endDate, pageable)
+                .map(cartMapper::toResponse);
+    }
 
 }
