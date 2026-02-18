@@ -1,3 +1,5 @@
+package com.example.demo.Model.DTOS.Response;
+
 public class PrintingStatisticsResponse {
     private double colorPercentage;
     private double bwPercentage;

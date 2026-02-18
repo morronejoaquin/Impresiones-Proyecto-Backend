@@ -1,15 +1,13 @@
 package com.example.demo.Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.Services.AdminDashboardService;
 import com.example.demo.Model.DTOS.Response.OrderSummaryByStatusResponse;
 import com.example.demo.Model.DTOS.Response.PrintingStatisticsResponse;
+import com.example.demo.Model.DTOS.Response.PaymentSummaryByMethodResponse;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/dashboard")
@@ -29,5 +27,11 @@ public class AdminDashboardController {
     public ResponseEntity<PrintingStatisticsResponse> getPrintingStatistics() {
         PrintingStatisticsResponse statistics = adminDashboardService.getPrintingStatistics();
         return ResponseEntity.ok(statistics);
+    }
+
+    @GetMapping("/payment-summary")
+    public ResponseEntity<List<PaymentSummaryByMethodResponse>> getPaymentSummary() {
+        List<PaymentSummaryByMethodResponse> summary = adminDashboardService.getPaymentSummaryByMethod();
+        return ResponseEntity.ok(summary);
     }
 }

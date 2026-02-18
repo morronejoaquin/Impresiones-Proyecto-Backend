@@ -4,8 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.demo.Model.DTOS.Response.OrderSummaryByStatusResponse;
 import com.example.demo.Model.DTOS.Response.PrintingStatisticsResponse;
+import com.example.demo.Model.DTOS.Response.PaymentSummaryByMethodResponse;
 import com.example.demo.Model.Entities.OrderItemEntity;
+import com.example.demo.Model.Entities.PaymentEntity;
+import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Repositories.OrderItemRepository;
+import com.example.demo.Repositories.PaymentRepository;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,6 +18,9 @@ public class AdminDashboardService {
 
     @Autowired
     private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     public List<OrderSummaryByStatusResponse> getOrderSummaryByStatus() {
         List<OrderItemEntity> allOrders = orderItemRepository.findAll();
@@ -69,5 +76,38 @@ public class AdminDashboardService {
         return new PrintingStatisticsResponse(colorPercentage, bwPercentage, ringedPercentage, 
                                          stapledPercentage, noBindingPercentage, totalSheets, 
                                          colorSheets, bwSheets);
+    }
+
+    public List<PaymentSummaryByMethodResponse> getPaymentSummaryByMethod() {
+        List<PaymentEntity> allPayments = paymentRepository.findAll();
+        
+        // Filter only completed payments
+        List<PaymentEntity> completedPayments = allPayments.stream()
+                .filter(p -> p.getPaymentStatus() == PaymentStatusEnum.APPROVED)
+                .toList();
+
+        double totalCollected = completedPayments.stream()
+                .mapToDouble(PaymentEntity::getFinalPrice)
+                .sum();
+
+        // Group payments by method
+        Map<String, List<PaymentEntity>> groupedByMethod = completedPayments.stream()
+                .collect(Collectors.groupingBy(p -> p.getPaymentMethod().toString()));
+
+        List<PaymentSummaryByMethodResponse> result = new ArrayList<>();
+        groupedByMethod.forEach((method, payments) -> {
+            double methodTotal = payments.stream()
+                    .mapToDouble(PaymentEntity::getFinalPrice)
+                    .sum();
+            double percentage = totalCollected > 0 ? (methodTotal / totalCollected) * 100 : 0;
+            result.add(new PaymentSummaryByMethodResponse(
+                    method,
+                    methodTotal,
+                    payments.size(),
+                    percentage
+            ));
+        });
+
+        return result;
     }
 }
