@@ -103,7 +103,9 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
         com.example.demo.Model.Enums.OrderStatusEnum.PENDING,
         com.example.demo.Model.Enums.OrderStatusEnum.PRINTING,
         com.example.demo.Model.Enums.OrderStatusEnum.BINDING,
-        com.example.demo.Model.Enums.OrderStatusEnum.READY
+        com.example.demo.Model.Enums.OrderStatusEnum.READY,
+        com.example.demo.Model.Enums.OrderStatusEnum.DELIVERED,
+        com.example.demo.Model.Enums.OrderStatusEnum.CANCELLED
     )
     AND c.deleted = false
     ORDER BY c.admReceivedAt DESC
