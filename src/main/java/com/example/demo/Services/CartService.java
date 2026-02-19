@@ -43,8 +43,9 @@ public class CartService {
     private final OrderItemMapper orderItemMapper;
     private final PricingService pricingService;
     private final PaymentRepository paymentRepository;
+    private final NotificationService notificationService;
 
-    public CartService(CartMapper cartMapper, CartRepository cartRepository, UserRepository userRepository, OrderItemRepository orderItemRepository, OrderItemMapper orderItemMapper, PricingService pricingService, PaymentRepository paymentRepository) {
+    public CartService(CartMapper cartMapper, CartRepository cartRepository, UserRepository userRepository, OrderItemRepository orderItemRepository, OrderItemMapper orderItemMapper, PricingService pricingService, PaymentRepository paymentRepository, NotificationService notificationService) {
         this.cartMapper = cartMapper;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
@@ -52,6 +53,7 @@ public class CartService {
         this.orderItemMapper = orderItemMapper;
         this.pricingService = pricingService;
         this.paymentRepository = paymentRepository;
+        this.notificationService = notificationService;
     }
 
     // Método auxiliar para obtener usuario por email
@@ -352,6 +354,10 @@ public class CartService {
 
         sincronizarCartStatus(cart); //Lo marcamos para si esta en uso o no el carrito
 
+        if (nuevoEstado == OrderStatusEnum.READY) {
+            String message = "¡Tu pedido #" + cart.getId().toString().substring(0,8) + " está listo para retirar!";
+            notificationService.createNotification(cart.getUser().getEmail(), message);
+        }
 
         // Setear fecha y hora
         if (nuevoEstado == OrderStatusEnum.DELIVERED) {

@@ -29,7 +29,7 @@ public class PricesController {
         return ResponseEntity.status(HttpStatus.CREATED).body(updated);
     }
 
-    @GetMapping("/current")
+    @GetMapping("/current-prices")
     public ResponseEntity<PricesResponse> getCurrentPrices(){
         PricesResponse current = service.getCurrentPrices();
         return ResponseEntity.ok(current);

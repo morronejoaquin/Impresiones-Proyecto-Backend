@@ -50,4 +50,13 @@ public class NotificationService {
             notificationRepository.save(n);
         });
     }
+
+    @Transactional
+    public void markAllAsRead(String email){
+        List<NotificationEntity> unread = notificationRepository
+                .findByUserEmailAndIsReadFalseOrderByCreatedAtDesc(email);
+
+        unread.forEach(n -> n.setRead(true));
+        notificationRepository.saveAll(unread);
+    }
 }
