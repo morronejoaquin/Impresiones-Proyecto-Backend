@@ -1,5 +1,6 @@
 package com.example.demo.Services;
 
+import com.example.demo.Model.DTOS.Response.AdminDashboardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.demo.Model.DTOS.Response.OrderSummaryByStatusResponse;
@@ -10,6 +11,12 @@ import com.example.demo.Model.Entities.PaymentEntity;
 import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Repositories.OrderItemRepository;
 import com.example.demo.Repositories.PaymentRepository;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,24 +29,48 @@ public class AdminDashboardService {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    public List<OrderSummaryByStatusResponse> getOrderSummaryByStatus() {
-        List<OrderItemEntity> allOrders = orderItemRepository.findAll();
+    public AdminDashboardResponse getDashboardData(String startDate, String endDate) {
+
+        Instant start = null;
+        Instant end = null;
+
+        // Convertimos las fechas de String a Instant
+        if (startDate != null && !startDate.isBlank()) {
+            start = LocalDate.parse(startDate).atStartOfDay(ZoneOffset.UTC).toInstant();
+        }else {
+            start = Instant.now().minus(30, ChronoUnit.DAYS); // por defecto los ultimos 30 dias
+        }
+        if (endDate != null && !endDate.isBlank()) {
+            end = LocalDate.parse(endDate).atTime(LocalTime.MAX).atZone(ZoneOffset.UTC).toInstant();
+        }else {
+            end = Instant.now();
+        }
+
+        List<OrderSummaryByStatusResponse> orderSummary = getOrderSummaryByStatus(start, end);
+        List<PaymentSummaryByMethodResponse> paymentSummary = getPaymentSummaryByMethod(start, end);
+        PrintingStatisticsResponse printingStatistics = getPrintingStatistics(start, end);
+
+        return new AdminDashboardResponse(orderSummary, paymentSummary, printingStatistics);
+    }
+
+    public List<OrderSummaryByStatusResponse> getOrderSummaryByStatus(Instant start, Instant end) {
+        List<OrderItemEntity> orders = orderItemRepository.findAllByCreatedAtBetween(start, end);
         
-        Map<String, List<OrderItemEntity>> groupedByStatus = allOrders.stream()
+        Map<String, List<OrderItemEntity>> groupedByStatus = orders.stream()
             .collect(Collectors.groupingBy(order -> order.getCart().getStatus().toString()));
 
         List<OrderSummaryByStatusResponse> result = new ArrayList<>();
-        groupedByStatus.forEach((status, orders) -> {
-            int count = orders.size();
-            double totalAmount = orders.stream().mapToDouble(OrderItemEntity::getAmount).sum();
+        groupedByStatus.forEach((status, order) -> {
+            int count = order.size();
+            double totalAmount = order.stream().mapToDouble(OrderItemEntity::getAmount).sum();
             result.add(new OrderSummaryByStatusResponse(status, count, totalAmount));
         });
 
         return result;
     }
 
-    public PrintingStatisticsResponse getPrintingStatistics() {
-        List<OrderItemEntity> allOrders = orderItemRepository.findAll();
+    public PrintingStatisticsResponse getPrintingStatistics(Instant start, Instant end) {
+        List<OrderItemEntity> orders = orderItemRepository.findAllByCreatedAtBetween(start, end);
         
         int totalSheets = 0;
         int colorSheets = 0;
@@ -48,7 +79,7 @@ public class AdminDashboardService {
         int stapledCount = 0;
         int noBindingCount = 0;
 
-        for (OrderItemEntity order : allOrders) {
+        for (OrderItemEntity order : orders) {
             int sheets = order.getPages() * order.getCopies();
             totalSheets += sheets;
 
@@ -66,23 +97,25 @@ public class AdminDashboardService {
             }
         }
 
-        double colorPercentage = totalSheets > 0 ? (colorSheets * 100.0) / totalSheets : 0;
-        double bwPercentage = totalSheets > 0 ? (bwSheets * 100.0) / totalSheets : 0;
-        double totalItems = allOrders.size();
-        double ringedPercentage = totalItems > 0 ? (ringedCount * 100.0) / totalItems : 0;
-        double stapledPercentage = totalItems > 0 ? (stapledCount * 100.0) / totalItems : 0;
-        double noBindingPercentage = totalItems > 0 ? (noBindingCount * 100.0) / totalItems : 0;
-
-        return new PrintingStatisticsResponse(colorPercentage, bwPercentage, ringedPercentage, 
-                                         stapledPercentage, noBindingPercentage, totalSheets, 
-                                         colorSheets, bwSheets);
+        return new PrintingStatisticsResponse(
+                calculatePercentage(colorSheets, totalSheets),
+                calculatePercentage(bwSheets, totalSheets),
+                calculatePercentage(ringedCount, orders.size()),
+                calculatePercentage(stapledCount, orders.size()),
+                calculatePercentage(noBindingCount, orders.size()),
+                totalSheets, colorSheets, bwSheets
+        );
     }
 
-    public List<PaymentSummaryByMethodResponse> getPaymentSummaryByMethod() {
-        List<PaymentEntity> allPayments = paymentRepository.findAll();
+    private double calculatePercentage(double part, double total) {
+        return total > 0 ? (part / total) * 100 : 0;
+    }
+
+    public List<PaymentSummaryByMethodResponse> getPaymentSummaryByMethod(Instant start, Instant end) {
+        List<PaymentEntity> payments = paymentRepository.findAllByPaidAtBetween(start, end);
         
         // Filter only completed payments
-        List<PaymentEntity> completedPayments = allPayments.stream()
+        List<PaymentEntity> completedPayments = payments.stream()
                 .filter(p -> p.getPaymentStatus() == PaymentStatusEnum.APPROVED)
                 .toList();
 
@@ -95,15 +128,15 @@ public class AdminDashboardService {
                 .collect(Collectors.groupingBy(p -> p.getPaymentMethod().toString()));
 
         List<PaymentSummaryByMethodResponse> result = new ArrayList<>();
-        groupedByMethod.forEach((method, payments) -> {
-            double methodTotal = payments.stream()
+        groupedByMethod.forEach((method, payment) -> {
+            double methodTotal = payment.stream()
                     .mapToDouble(PaymentEntity::getFinalPrice)
                     .sum();
-            double percentage = totalCollected > 0 ? (methodTotal / totalCollected) * 100 : 0;
+            double percentage = calculatePercentage(methodTotal, totalCollected);
             result.add(new PaymentSummaryByMethodResponse(
                     method,
                     methodTotal,
-                    payments.size(),
+                    payment.size(),
                     percentage
             ));
         });

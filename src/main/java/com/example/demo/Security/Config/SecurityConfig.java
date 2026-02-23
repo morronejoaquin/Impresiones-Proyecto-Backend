@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/carts/**").authenticated()
                         .requestMatchers("/orderItems/**").authenticated()
                         .requestMatchers("/prices/**").authenticated() // GET público, POST admin
+                        .requestMatchers("/admin/**").authenticated()
 
                         // 4. CUALQUIER OTRA PETICIÓN
                         .anyRequest().authenticated()
