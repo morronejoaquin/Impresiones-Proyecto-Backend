@@ -362,7 +362,7 @@ public class CartService {
         // Setear fecha y hora
         if (nuevoEstado == OrderStatusEnum.DELIVERED) {
             cart.setDeliveredAt(Instant.now());
-        } else {
+        } else if (nuevoEstado == OrderStatusEnum.READY){
             cart.setCompletedAt(Instant.now());
         }
 
@@ -434,8 +434,8 @@ public class CartService {
                 .map(cartMapper::toResponse);
     }
 
-    public Page<CartResponse> getDeliveredHistory(String startDate, String endDate, Pageable pageable) {
-        return cartRepository.getDeliveredHistory(startDate, endDate, pageable)
+    public Page<CartResponse> getDeliveredHistory(String customerEmail, String startDate, String endDate, Pageable pageable) {
+        return cartRepository.getDeliveredHistory(customerEmail, startDate, endDate, pageable)
                 .map(cartMapper::toResponse);
     }
 

@@ -228,11 +228,12 @@ public class CartController {
     @GetMapping("/admin/history")
     @PreAuthorize("hasRole('administrador')")
     public ResponseEntity<Page<CartResponse>> getDeliveredHistory(
+            @RequestParam(required = false) String customerEmail,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             Pageable pageable
     ){
-        Page<CartResponse> carts = service.getDeliveredHistory(startDate, endDate, pageable);
+        Page<CartResponse> carts = service.getDeliveredHistory(customerEmail, startDate, endDate, pageable);
         return ResponseEntity.ok(carts);
     }
 }

@@ -121,8 +121,9 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
     @Query("""
     SELECT c FROM CartEntity c
     WHERE c.status = com.example.demo.Model.Enums.OrderStatusEnum.DELIVERED
+    AND (:customerEmail IS NULL OR LOWER(c.customer.email) LIKE LOWER(CONCAT('%', :customerEmail, '%')))
     AND (
-        :startDate IS NULL OR c.createdAt >= CAST(:startDate AS java.time.Instant)
+        :startDate IS NULL OR c.deliveredAt >= CAST(:startDate AS java.time.Instant)
     )
     AND (
         :endDate IS NULL OR c.deliveredAt <= CAST(:endDate AS java.time.Instant)
@@ -131,6 +132,7 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
     ORDER BY c.deliveredAt DESC
     """)
     Page<CartEntity> getDeliveredHistory(
+            @Param("customerEmail") String customerEmail,
             @Param("startDate") String startDate,
             @Param("endDate") String endDate,
             Pageable pageable
