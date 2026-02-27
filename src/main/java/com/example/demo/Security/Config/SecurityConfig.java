@@ -1,4 +1,5 @@
 package com.example.demo.Security.Config;
+
 import com.example.demo.Security.Filter.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 import java.util.Arrays;
 import java.util.List;
 
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -48,6 +48,14 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // Mejora: Soporte CORS
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+
+                        // SWAGGER Y WEBHOOKS
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+
                         // 1. ENDPOINTS PÚBLICOS
                         .requestMatchers("/webhooks/**").permitAll()
                         .requestMatchers("/auth/login", "/auth/register").permitAll()
@@ -98,7 +106,7 @@ public class SecurityConfig {
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
