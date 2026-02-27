@@ -332,7 +332,15 @@ public class CartService {
                 .filter(item -> !item.isDeleted())
                 .toList());
 
-        return cartMapper.toResponseWithItems(cart);
+        PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cart.getId())
+                .orElse(null);
+
+        CartWithItemsResponse response = cartMapper.toResponseWithItems(cart);
+
+        response.setPaymentMethod(payment != null ? payment.getPaymentMethod().name() : "N/A");
+        response.setPaymentStatus(payment != null ? payment.getPaymentStatus().name() : "PENDING");
+
+        return response;
     }
 
     public CartWithItemsResponse actualizarEstado(UUID cartId, OrderStatusEnum nuevoEstado){

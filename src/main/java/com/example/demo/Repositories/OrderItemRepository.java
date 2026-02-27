@@ -21,6 +21,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItemEntity, UUID
 
     List<OrderItemEntity> findAllByDeletedTrue();
 
-    @Query("SELECT o FROM OrderItemEntity o WHERE o.cart.createdAt BETWEEN :start AND :end AND o.deleted = false")
+    @Query("SELECT o FROM OrderItemEntity o WHERE o.cart.createdAt BETWEEN :start AND :end " +
+            "AND o.deleted = false " +
+            "AND o.cart.cartStatus != 'OPEN' " +
+            "AND o.cart.status IS NOT NULL")
     List<OrderItemEntity> findAllByCreatedAtBetween(@Param("start") Instant start, @Param("end") Instant end);
 }

@@ -21,6 +21,8 @@ public class CartWithItemsResponse {
     private Instant completedAt;
     private Instant deliveredAt;
     private Instant admReceivedAt;
+    private String paymentMethod;
+    private String paymentStatus;
     private List<OrderItemResponse> items;
     private boolean deleted = false;
 }
