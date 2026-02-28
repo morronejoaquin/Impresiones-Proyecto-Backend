@@ -27,21 +27,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-
-        String path = request.getServletPath();
-
-        if (path.startsWith("/webhooks") ||
-        path.startsWith("/swagger-ui") ||
-        path.startsWith("/v3/api-docs")) {
-
-        filterChain.doFilter(request, response);
-            return;
-        }
-        
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain)
             throws ServletException, IOException {
+
+        String path = request.getServletPath();
+
+        if (path.startsWith("/webhooks") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs")) {
+
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (request.getServletPath().startsWith("/webhooks")) {
             filterChain.doFilter(request, response);

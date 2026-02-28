@@ -1,6 +1,7 @@
 package com.example.demo.Controllers;
 
 import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
+import com.example.demo.Model.DTOS.Request.PaymentStatusUpdateRequest;
 import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
 import com.example.demo.Services.PaymentService;
@@ -80,5 +81,15 @@ public class PaymentController {
         return ResponseEntity.ok(
                 service.processCheckout(dto, authentication.getName())
         );
+    }
+
+    @Operation(summary = "Actualizar estado del pago")
+    @PatchMapping("/{cartId}/update-status")
+    public ResponseEntity<PaymentResponse> updatePaymentStatus(
+            @Parameter(description = "ID del carrito")
+            @PathVariable UUID cartId,
+            @RequestBody PaymentStatusUpdateRequest dto
+    ){
+        return ResponseEntity.ok(service.updatePaymentStatus(cartId, dto));
     }
 }

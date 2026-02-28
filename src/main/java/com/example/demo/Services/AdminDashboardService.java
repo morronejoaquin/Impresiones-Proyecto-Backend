@@ -55,14 +55,28 @@ public class AdminDashboardService {
 
     public List<OrderSummaryByStatusResponse> getOrderSummaryByStatus(Instant start, Instant end) {
         List<OrderItemEntity> orders = orderItemRepository.findAllByCreatedAtBetween(start, end);
-        
-        Map<String, List<OrderItemEntity>> groupedByStatus = orders.stream()
-            .collect(Collectors.groupingBy(order -> order.getCart().getStatus().toString()));
+
+        // 1. Agrupar los ítems por el Cart al que pertenecen para evitar duplicados
+        Map<UUID, List<OrderItemEntity>> itemsByCart = orders.stream()
+                .collect(Collectors.groupingBy(item -> item.getCart().getId()));
+
+        // 2. Agrupar esos pedidos únicos por su estado
+        Map<String, List<UUID>> cartsByStatus = itemsByCart.values().stream()
+                .collect(Collectors.groupingBy(
+                        orderItems -> orderItems.get(0).getCart().getStatus().toString(),
+                        Collectors.mapping(orderItems -> orderItems.get(0).getCart().getId(), Collectors.toList())
+                ));
 
         List<OrderSummaryByStatusResponse> result = new ArrayList<>();
-        groupedByStatus.forEach((status, order) -> {
-            int count = order.size();
-            double totalAmount = order.stream().mapToDouble(OrderItemEntity::getAmount).sum();
+        cartsByStatus.forEach((status, cartIds) -> {
+            int count = cartIds.size(); // Esto ahora cuenta pedidos únicos
+
+            // Sumar el total del carrito una sola vez por cada pedido
+            double totalAmount = itemsByCart.entrySet().stream()
+                    .filter(entry -> cartIds.contains(entry.getKey()))
+                    .mapToDouble(entry -> entry.getValue().get(0).getCart().getTotal())
+                    .sum();
+
             result.add(new OrderSummaryByStatusResponse(status, count, totalAmount));
         });
 

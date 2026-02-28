@@ -2,6 +2,7 @@ package com.example.demo.Services;
 
 import com.example.demo.Model.DTOS.Mappers.PaymentMapper;
 import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
+import com.example.demo.Model.DTOS.Request.PaymentStatusUpdateRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import com.example.demo.Model.DTOS.Response.PaymentPreferenceResponse;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.NoSuchElementException;
@@ -98,5 +100,22 @@ public class PaymentService {
                 null,
                 "Tu pedido ha sido registrado. Por favor, acércate al local para abonar y confirmar la producción.",
                 cart.getId());
+    }
+
+    @Transactional
+    public PaymentResponse updatePaymentStatus(UUID cartId, PaymentStatusUpdateRequest request) {
+        PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cartId)
+                .orElseThrow(() -> new NoSuchElementException("Pago no encontrado para este carrito"));
+
+        PaymentStatusEnum newStatus = request.getStatus();
+        payment.setPaymentStatus(newStatus);
+
+        if (newStatus == PaymentStatusEnum.APPROVED) {
+            payment.setPaidAt(Instant.now());
+        }
+
+        paymentRepository.save(payment);
+
+        return paymentMapper.toResponse(payment);
     }
 }
