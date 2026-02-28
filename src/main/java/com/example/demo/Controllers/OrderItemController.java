@@ -3,6 +3,12 @@ package com.example.demo.Controllers;
 import com.example.demo.Model.DTOS.Request.OrderItemUpdateRequest;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Services.OrderItemService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -12,29 +18,64 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/orderItems")
+@RequiredArgsConstructor
+@Tag(name = "Order Items", description = "Gestión de ítems de órdenes")
 public class OrderItemController {
 
     private final OrderItemService service;
 
-    public OrderItemController(OrderItemService service) {
-        this.service = service;
-    }
-
+    
+    @Operation(
+            summary = "Obtener todos los ítems",
+            description = "Devuelve una lista paginada de ítems de órdenes"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista obtenida correctamente"),
+            @ApiResponse(responseCode = "401", description = "No autorizado")
+    })
     @GetMapping
-    public ResponseEntity<Page<OrderItemResponse>> getAll(Pageable pageable){
-        Page<OrderItemResponse> items = service.findAll(pageable);
-        return ResponseEntity.ok(items);
+    public ResponseEntity<Page<OrderItemResponse>> getAll(
+            @Parameter(description = "Configuración de paginación")
+            Pageable pageable
+    ){
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
+    @Operation(
+            summary = "Obtener ítem por ID",
+            description = "Devuelve un ítem específico mediante su UUID"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ítem encontrado"),
+            @ApiResponse(responseCode = "404", description = "Ítem no encontrado")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<OrderItemResponse> getById(@PathVariable UUID id){
-        OrderItemResponse item = service.findById(id);
-        return ResponseEntity.ok(item);
+    public ResponseEntity<OrderItemResponse> getById(
+            @Parameter(description = "UUID del ítem", required = true)
+            @PathVariable UUID id
+    ){
+        return ResponseEntity.ok(service.findById(id));
     }
 
+    @Operation(
+            summary = "Actualizar ítem",
+            description = "Actualiza parcialmente un ítem de orden"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ítem actualizado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+            @ApiResponse(responseCode = "404", description = "Ítem no encontrado")
+    })
     @PatchMapping("/{id}")
-    public ResponseEntity<OrderItemResponse> update(@PathVariable UUID id, @RequestBody OrderItemUpdateRequest request){
-        OrderItemResponse updated = service.update(id, request);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<OrderItemResponse> update(
+            @Parameter(description = "UUID del ítem a actualizar", required = true)
+            @PathVariable UUID id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Datos a modificar",
+                    required = true
+            )
+            @RequestBody OrderItemUpdateRequest request
+    ){
+        return ResponseEntity.ok(service.update(id, request));
     }
 }
