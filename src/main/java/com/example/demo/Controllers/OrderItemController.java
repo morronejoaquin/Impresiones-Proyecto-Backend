@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -34,6 +35,7 @@ public class OrderItemController {
             @ApiResponse(responseCode = "401", description = "No autorizado")
     })
     @GetMapping
+    @PreAuthorize("authenticated")
     public ResponseEntity<Page<OrderItemResponse>> getAll(
             @Parameter(description = "Configuración de paginación")
             Pageable pageable
@@ -50,6 +52,7 @@ public class OrderItemController {
             @ApiResponse(responseCode = "404", description = "Ítem no encontrado")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("authenticated")
     public ResponseEntity<OrderItemResponse> getById(
             @Parameter(description = "UUID del ítem", required = true)
             @PathVariable UUID id
@@ -67,6 +70,7 @@ public class OrderItemController {
             @ApiResponse(responseCode = "404", description = "Ítem no encontrado")
     })
     @PatchMapping("/{id}")
+    @PreAuthorize("hasAuthority('ACTUALIZAR_ORDEN')")
     public ResponseEntity<OrderItemResponse> update(
             @Parameter(description = "UUID del ítem a actualizar", required = true)
             @PathVariable UUID id,

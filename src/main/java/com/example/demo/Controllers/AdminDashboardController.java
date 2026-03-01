@@ -3,6 +3,7 @@ package com.example.demo.Controllers;
 import com.example.demo.Model.DTOS.Response.AdminDashboardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.Services.AdminDashboardService;
 
@@ -37,6 +38,7 @@ public class AdminDashboardController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/dashboard")
+    @PreAuthorize("hasAuthority('VER_ESTADISTICAS')")
     public ResponseEntity<AdminDashboardResponse> getDashboardData(
 
             @Parameter(description = "Fecha de inicio del filtro en formato YYYY-MM-DD")

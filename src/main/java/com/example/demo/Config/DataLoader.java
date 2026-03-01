@@ -65,6 +65,10 @@ public class DataLoader implements CommandLineRunner {
             PermitEntity verTodosUsuarios = permitRepository.save(new PermitEntity(Permits.VER_TODOS_USUARIOS));
             PermitEntity modificarPrecios = permitRepository.save(new PermitEntity(Permits.MODIFICAR_PRECIOS));
             PermitEntity verEstadisticas = permitRepository.save(new PermitEntity(Permits.VER_ESTADISTICAS));
+            PermitEntity actualizarUsuario = permitRepository.save(new PermitEntity(Permits.ACTUALIZAR_USUARIO));
+            PermitEntity verPagos = permitRepository.save(new PermitEntity(Permits.VER_PAGOS));
+            PermitEntity actualizarPago = permitRepository.save(new PermitEntity(Permits.ACTUALIZAR_PAGO));
+            PermitEntity actualizarOrden = permitRepository.save(new PermitEntity(Permits.ACTUALIZAR_ORDEN));
 
             // Agregar TODOS los permisos al admin
             adminRole.addPermit(verCuenta);
@@ -78,6 +82,10 @@ public class DataLoader implements CommandLineRunner {
             adminRole.addPermit(verTodosUsuarios);
             adminRole.addPermit(modificarPrecios);
             adminRole.addPermit(verEstadisticas);
+            adminRole.addPermit(actualizarUsuario);
+            adminRole.addPermit(verPagos);
+            adminRole.addPermit(actualizarPago);
+            adminRole.addPermit(actualizarOrden);
 
             roleRepository.save(adminRole);
 
@@ -91,6 +99,7 @@ public class DataLoader implements CommandLineRunner {
             clienteRole.addPermit(eliminarPedido);
             clienteRole.addPermit(verCarrito);
             clienteRole.addPermit(pagarCarrito);
+            clienteRole.addPermit(verPagos);
 
             roleRepository.save(clienteRole);
         }

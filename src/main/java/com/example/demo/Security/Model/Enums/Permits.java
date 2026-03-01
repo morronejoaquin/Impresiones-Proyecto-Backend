@@ -18,6 +18,12 @@ public enum Permits {
     MODIFICAR_ESTADO_PEDIDO,
     VER_TODOS_USUARIOS,
     MODIFICAR_PRECIOS,
-    VER_ESTADISTICAS
+    VER_ESTADISTICAS,
+    
+    // Permisos adicionales para protección granular
+    ACTUALIZAR_USUARIO,
+    VER_PAGOS,
+    ACTUALIZAR_PAGO,
+    ACTUALIZAR_ORDEN
 
 }
