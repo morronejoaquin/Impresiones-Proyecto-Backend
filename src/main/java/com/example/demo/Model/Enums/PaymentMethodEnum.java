@@ -2,5 +2,5 @@ package com.example.demo.Model.Enums;
 
 
 public enum PaymentMethodEnum {
-    CASH, MERCADO_PAGO
+    CASH, TRANSFER, MERCADO_PAGO
 }

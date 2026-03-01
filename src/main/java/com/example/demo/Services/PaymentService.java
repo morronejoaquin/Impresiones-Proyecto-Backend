@@ -58,6 +58,7 @@ public class PaymentService {
         return paymentMapper.toHistoryResponse(entity);
     }
 
+    @Transactional
     public PaymentResponse processCheckout(PaymentCreateRequest request, String email) {
 
         CartEntity cart = cartService.getOpenCartForUser(email);
@@ -72,8 +73,8 @@ public class PaymentService {
             return new PaymentResponse("REDIRECT", url.getInitPoint(), null, cart.getId());
         }
 
-        // si es efectivo, se crea el pago de forma manual
-        if (PaymentMethodEnum.CASH.equals(request.getPaymentMethod())) {
+        // si es efectivo o transferencia, se crea el pago de forma manual
+        if (PaymentMethodEnum.CASH.equals(request.getPaymentMethod()) || PaymentMethodEnum.TRANSFER.equals(request.getPaymentMethod())) {
             return processManualPayment(cart, request.getPaymentMethod());
         }
 
