@@ -6,5 +6,6 @@ import lombok.Data;
 public class PriceCalculationResponse {
     private double total;
     private double pricePerSheet;
-    private double priceRingedBinding;
+    private boolean isDoubleSided;
+    private double bindingPrice;
 }

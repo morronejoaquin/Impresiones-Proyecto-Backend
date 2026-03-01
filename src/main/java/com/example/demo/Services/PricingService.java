@@ -18,9 +18,9 @@ public class PricingService {
 
     public double calcular(OrderItemEntity item){
 
-        PriceCalculationResponse response = calculadora(item.getPages(), item.getCopies(), item.isColor(), item.getBinding());
+        PriceCalculationResponse response = calculadora(item.getPages(), item.getCopies(), item.isColor(), item.isDoubleSided(), item.getBinding());
         item.setPricePerSheet(response.getPricePerSheet());
-        item.setPriceRingedBinding(response.getPriceRingedBinding());
+        item.setBindingPrice(response.getBindingPrice());
 
         return response.getTotal();
     }
@@ -29,6 +29,7 @@ public class PricingService {
             int pages,
             int copies,
             boolean color,
+            boolean doubleSided,
             BindingTypeEnum binding
     ) {
 
@@ -38,18 +39,29 @@ public class PricingService {
                 ? prices.getPricePerSheetColor()
                 : prices.getPricePerSheetBW();
 
-        double total = precioHoja * pages * copies;
-
-        double bindingPrice = 0;
-        if (binding != BindingTypeEnum.NONE) {
-            bindingPrice = prices.getPriceRingedBinding();
-            total += bindingPrice;
+        // LÓGICA DOBLE FAZ:
+        // Si es doble faz y tiene más de 1 página, dividimos por 2 y redondeamos hacia arriba.
+        int hojasAImprimir = pages;
+        if (doubleSided && pages > 1) {
+            hojasAImprimir = (int) Math.ceil(pages / 2.0);
         }
+
+        double subtotalImpresiones = precioHoja * hojasAImprimir * copies;
+
+        // LÓGICA ENCUADERNACIÓN:
+        double bindingPrice = 0;
+        if (binding == BindingTypeEnum.RINGED) {
+            bindingPrice = prices.getPriceRingedBinding();
+        } else if (binding == BindingTypeEnum.STAPLED) {
+            bindingPrice = prices.getPriceStapledBinding();
+        }
+
+        double total = subtotalImpresiones + bindingPrice;
 
         PriceCalculationResponse response = new PriceCalculationResponse();
         response.setTotal(total);
         response.setPricePerSheet(precioHoja);
-        response.setPriceRingedBinding(bindingPrice);
+        response.setBindingPrice(bindingPrice);
 
         return response;
     }

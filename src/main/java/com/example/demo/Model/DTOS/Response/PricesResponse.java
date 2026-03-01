@@ -10,6 +10,7 @@ public class PricesResponse {
     private double pricePerSheetBW;
     private double pricePerSheetColor;
     private double priceRingedBinding;
+    private double priceStapledBinding;
 
     private Instant validFrom;
     private Instant validTo;

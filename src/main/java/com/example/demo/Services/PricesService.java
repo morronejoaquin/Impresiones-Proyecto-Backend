@@ -59,6 +59,8 @@ public class PricesService {
             throw new IllegalArgumentException("El precio de hoja a color no puede ser 0 o negativo");
         }else if(request.getPriceRingedBinding() <= 0){
             throw new IllegalArgumentException("El precio de encuardernado no puede ser 0 o negativo");
+        }else if(request.getPriceStapledBinding() <= 0){
+            throw new IllegalArgumentException("El precio de abrochado no puede ser 0 o negativo");
         }
     }
 

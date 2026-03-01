@@ -138,6 +138,7 @@ public class DataLoader implements CommandLineRunner {
             PricesEntity prices = new PricesEntity();
             prices.setPricePerSheetBW(200);
             prices.setPriceRingedBinding(2000);
+            prices.setPriceStapledBinding(200);
             prices.setPricePerSheetColor(400);
             prices.setValidFrom(Instant.now());
             prices.setValidTo(null);

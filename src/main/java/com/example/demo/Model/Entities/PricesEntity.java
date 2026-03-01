@@ -25,6 +25,9 @@ public class PricesEntity {
     private double priceRingedBinding;
 
     @Column(nullable = false)
+    private double priceStapledBinding;
+
+    @Column(nullable = false)
     private Instant validFrom;
 
     private Instant validTo;

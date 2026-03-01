@@ -45,6 +45,7 @@ public class CalculatorController {
                 request.getPages(),
                 request.getCopies(),
                 request.isColor(),
+                request.isDoubleSided(),
                 request.getBinding()
         );
 

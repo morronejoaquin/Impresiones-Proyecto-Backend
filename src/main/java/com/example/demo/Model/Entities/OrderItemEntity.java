@@ -56,7 +56,7 @@ public class OrderItemEntity {
     private double pricePerSheet;
 
     @Column(nullable = false)
-    private double priceRingedBinding;
+    private double bindingPrice;
 
     private Integer imageWidth;
     private Integer imageHeight;

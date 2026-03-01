@@ -100,7 +100,7 @@ public class MercadoPagoWebhookService {
 
                     for (OrderItemEntity item : cart.getItems()){
                         item.setPricePerSheet(pricingService.obtenerPreciosVigentes().getPricePerSheetBW());
-                        item.setPriceRingedBinding(pricingService.obtenerPreciosVigentes().getPriceRingedBinding());
+                        item.setBindingPrice(pricingService.obtenerPreciosVigentes().getPriceRingedBinding());
                         orderItemRepository.save(item);
                     }
 

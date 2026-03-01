@@ -14,5 +14,8 @@ public class PricesUpdateRequest {
 
     @Positive(message = "El precio de anillado debe ser mayor a 0")
     private double priceRingedBinding;
+
+    @Positive(message = "El precio de abrochado debe ser mayor a 0")
+    private double priceStapledBinding;
 }
 
