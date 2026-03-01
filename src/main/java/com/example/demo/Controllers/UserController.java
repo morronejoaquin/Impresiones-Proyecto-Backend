@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +33,7 @@ public class UserController {
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente")
     @GetMapping
+    @PreAuthorize("hasAuthority('VER_TODOS_USUARIOS')")
     public ResponseEntity<Page<UserResponse>> getAll(Pageable pageable){
         return ResponseEntity.ok(service.findAll(pageable));
     }
@@ -42,6 +44,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('VER_TODOS_USUARIOS')")
     public ResponseEntity<UserResponse> getById(@PathVariable UUID id){
         return ResponseEntity.ok(service.findById(id));
     }
@@ -53,6 +56,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
     @PatchMapping("/{id}")
+    @PreAuthorize("hasAuthority('ACTUALIZAR_USUARIO')")
     public ResponseEntity<String> update(
             @PathVariable UUID id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(

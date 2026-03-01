@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,7 @@ public class PaymentController {
             @ApiResponse(responseCode = "401", description = "No autorizado")
     })
     @GetMapping
+    @PreAuthorize("hasAuthority('VER_PAGOS')")
     public ResponseEntity<Page<CartHistoryResponse>> getAll(
             @Parameter(description = "Configuración de paginación")
             Pageable pageable
@@ -52,6 +54,7 @@ public class PaymentController {
             @ApiResponse(responseCode = "404", description = "Pago no encontrado")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('VER_PAGOS')")
     public ResponseEntity<CartHistoryResponse> getById(
             @Parameter(description = "UUID del pago", required = true)
             @PathVariable UUID id
@@ -85,6 +88,7 @@ public class PaymentController {
 
     @Operation(summary = "Actualizar estado del pago")
     @PatchMapping("/{cartId}/update-status")
+    @PreAuthorize("hasAuthority('ACTUALIZAR_PAGO')")
     public ResponseEntity<PaymentResponse> updatePaymentStatus(
             @Parameter(description = "ID del carrito")
             @PathVariable UUID cartId,
