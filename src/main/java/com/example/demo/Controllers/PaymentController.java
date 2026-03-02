@@ -72,6 +72,7 @@ public class PaymentController {
             @ApiResponse(responseCode = "401", description = "Usuario no autenticado")
     })
     @PostMapping("/checkout")
+    @PreAuthorize("hasAuthority('PAGAR_CARRITO')")
     public ResponseEntity<PaymentResponse> checkout(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Datos necesarios para crear el pago",

@@ -63,6 +63,7 @@ public class PricesController {
     @Operation(summary = "Obtener historial de precios")
     @ApiResponse(responseCode = "200", description = "Listado paginado obtenido correctamente")
     @GetMapping
+    @PreAuthorize("hasRole('administrador')")
     public ResponseEntity<Page<PricesResponse>> getAll(
             @Parameter(description = "Configuración de paginación")
             Pageable pageable
@@ -76,6 +77,7 @@ public class PricesController {
             @ApiResponse(responseCode = "404", description = "Precio no encontrado")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('administrador')")
     public ResponseEntity<PricesResponse> getById(
             @Parameter(description = "UUID del precio", required = true)
             @PathVariable UUID id

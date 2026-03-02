@@ -56,7 +56,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAuthority('ACTUALIZAR_USUARIO')")
+    @PreAuthorize("hasAuthority('MODIFICAR_USUARIO_CLIENTE')")
     public ResponseEntity<String> update(
             @PathVariable UUID id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -76,6 +76,7 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
     @GetMapping("/profile")
+    @PreAuthorize("hasAuthority('VER_CUENTA')")
     public ResponseEntity<ProfileResponse> getProfile(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -91,6 +92,7 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
     @PutMapping
+    @PreAuthorize("hasAuthority('MODIFICAR_CUENTA')")
     public ResponseEntity<UserResponse> updateProfile(
             @Valid
             @io.swagger.v3.oas.annotations.parameters.RequestBody(

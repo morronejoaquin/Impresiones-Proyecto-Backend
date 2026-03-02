@@ -35,7 +35,7 @@ public class OrderItemController {
             @ApiResponse(responseCode = "401", description = "No autorizado")
     })
     @GetMapping
-    @PreAuthorize("authenticated")
+    @PreAuthorize("hasRole('administrador')")
     public ResponseEntity<Page<OrderItemResponse>> getAll(
             @Parameter(description = "Configuración de paginación")
             Pageable pageable
@@ -52,7 +52,7 @@ public class OrderItemController {
             @ApiResponse(responseCode = "404", description = "Ítem no encontrado")
     })
     @GetMapping("/{id}")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("hasRole('administrador')")
     public ResponseEntity<OrderItemResponse> getById(
             @Parameter(description = "UUID del ítem", required = true)
             @PathVariable UUID id
@@ -70,7 +70,7 @@ public class OrderItemController {
             @ApiResponse(responseCode = "404", description = "Ítem no encontrado")
     })
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAuthority('ACTUALIZAR_ORDEN')")
+    @PreAuthorize("hasAuthority('MODIFICAR_PEDIDO')")
     public ResponseEntity<OrderItemResponse> update(
             @Parameter(description = "UUID del ítem a actualizar", required = true)
             @PathVariable UUID id,

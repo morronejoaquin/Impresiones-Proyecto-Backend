@@ -58,19 +58,21 @@ public class CartController {
 
     @Operation(summary = "Listar todos los carritos con items (Admin)")
     @GetMapping("/all")
-    @PreAuthorize("hasAuthority('VER_TODOS_PEDIDOS')")
+    @PreAuthorize("hasAuthority('VER_TODOS_CARRITOS')")
     public ResponseEntity<Page<CartWithItemsResponse>> getAllWithItems(Pageable pageable){
         return ResponseEntity.ok(service.findAllWithItems(pageable));
     }
 
     @Operation(summary = "Listar carritos")
     @GetMapping
+    @PreAuthorize("hasAuthority('VER_TODOS_CARRITOS')")
     public ResponseEntity<Page<CartResponse>> getAll(Pageable pageable){
         return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @Operation(summary = "Listar carritos pendientes")
     @GetMapping("/pending")
+    @PreAuthorize("hasAuthority('VER_TODOS_CARRITOS')")
     public ResponseEntity<Page<CartResponse>> getPendingCarts(Pageable pageable){
         return ResponseEntity.ok(
                 service.findByStatus(OrderStatusEnum.PENDING, pageable)
@@ -79,6 +81,7 @@ public class CartController {
 
     @Operation(summary = "Filtrar carritos entregados")
     @GetMapping("/delivered")
+    @PreAuthorize("hasAuthority('VER_TODOS_CARRITOS')")
     public ResponseEntity<Page<CartResponse>> getDeliveredCarts(
             @Parameter(description = "Fecha filtro ISO-8601")
             @RequestParam(required = false) Instant date,
@@ -93,6 +96,7 @@ public class CartController {
 
     @Operation(summary = "Obtener carrito por ID")
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('VER_CARRITO_CLIENTE')")
     public ResponseEntity<CartResponse> getById(
             @Parameter(description = "ID del carrito")
             @PathVariable UUID id){
@@ -155,6 +159,7 @@ public class CartController {
 
     @Operation(summary = "Obtener carrito con items")
     @GetMapping("/{id}/items")
+    @PreAuthorize("hasAuthority('VER_CARRITO_CLIENTE')")
     public ResponseEntity<CartWithItemsResponse> findWithItems(
             @Parameter(description = "ID del carrito")
             @PathVariable UUID id){
@@ -163,13 +168,14 @@ public class CartController {
 
     @Operation(summary = "Obtener carrito abierto del usuario")
     @GetMapping("/my-cart")
-    @PreAuthorize("hasAuthority('VER_CARRITO')")
+    @PreAuthorize("hasAuthority('VER_MI_CARRITO')")
     public ResponseEntity<CartWithItemsResponse> findOpenCart(Authentication authentication){
         return ResponseEntity.ok(service.findOpenCart(authentication.getName()));
     }
 
     @Operation(summary = "Actualizar estado del carrito")
     @PatchMapping("/{cartId}/estado")
+    @PreAuthorize("hasAuthority('MODIFICAR_ESTADO_PEDIDO')")
     public ResponseEntity<CartWithItemsResponse> actualizarEstado(
             @Parameter(description = "ID del carrito")
             @PathVariable UUID cartId,
@@ -182,6 +188,7 @@ public class CartController {
 
     @Operation(summary = "Filtrar carritos")
     @GetMapping("/filter")
+    @PreAuthorize("hasAuthority('VER_TODOS_CARRITOS')")
     public Page<CartResponse> filterCarts(
             @RequestParam(required = false) OrderStatusEnum status,
             @RequestParam(required = false) Instant from,
@@ -194,6 +201,7 @@ public class CartController {
 
     @Operation(summary = "Obtener órdenes por carrito")
     @GetMapping("/{carritoId}/ordenes")
+    @PreAuthorize("hasAuthority('VER_CARRITO_CLIENTE')")
     public ResponseEntity<List<OrderItemResponse>> obtenerOrdenesPorCarrito(
             @PathVariable UUID carritoId){
         return ResponseEntity.ok(
@@ -203,6 +211,7 @@ public class CartController {
 
     @Operation(summary = "Obtener orden específica por carrito")
     @GetMapping("/{carritoId}/ordenes/{ordenId}")
+    @PreAuthorize("hasAuthority('VER_MI_CARRITO')")
     public ResponseEntity<OrderItemResponse> obtenerOrdenEspecificaPorCarrito(
             @PathVariable UUID carritoId,
             @PathVariable UUID ordenId){
@@ -213,6 +222,7 @@ public class CartController {
 
     @Operation(summary = "Descargar archivo de orden")
     @GetMapping("/{carritoId}/ordenes/{ordenId}/descargar")
+    @PreAuthorize("hasAuthority('VER_CARRITO_CLIENTE')")
     public ResponseEntity<byte[]> descargarArchivoOrden(
             @PathVariable UUID carritoId,
             @PathVariable UUID ordenId) throws Exception {
@@ -236,7 +246,7 @@ public class CartController {
 
     @Operation(summary = "Historial de pedidos del usuario")
     @GetMapping("/my-orders")
-    @PreAuthorize("hasAuthority('VER_CARRITO')")
+    @PreAuthorize("hasAuthority('VER_MIS_CARRITOS')")
     public ResponseEntity<Page<CartHistoryResponse>> obtenerMisPedidos(
             Authentication authentication,
             Pageable pageable) {

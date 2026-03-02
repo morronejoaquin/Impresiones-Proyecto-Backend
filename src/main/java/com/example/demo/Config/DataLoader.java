@@ -49,43 +49,53 @@ public class DataLoader implements CommandLineRunner {
 
         if (roleRepository.count() == 0) {
             // 1. Crear Roles y Permisos (Si no existen)
+
+            // Permisos de usuarios cliente y administrador
             PermitEntity verCuenta = permitRepository.save(new PermitEntity(Permits.VER_CUENTA));
             PermitEntity crearCuenta = permitRepository.save(new PermitEntity(Permits.CREAR_CUENTA));
             PermitEntity modificarCuenta = permitRepository.save(new PermitEntity(Permits.MODIFICAR_CUENTA));
             PermitEntity eliminarCuenta = permitRepository.save(new PermitEntity(Permits.ELIMINAR_CUENTA));
+
+            // Permisos de usuario cliente
             PermitEntity crearCarrito = permitRepository.save(new PermitEntity(Permits.CREAR_CARRITO));
             PermitEntity cargarPedido = permitRepository.save(new PermitEntity(Permits.CARGAR_PEDIDO));
+            PermitEntity modificarPedido = permitRepository.save(new PermitEntity(Permits.MODIFICAR_PEDIDO));
             PermitEntity eliminarPedido = permitRepository.save(new PermitEntity(Permits.ELIMINAR_PEDIDO));
-            PermitEntity verCarrito = permitRepository.save(new PermitEntity(Permits.VER_CARRITO));
+            PermitEntity verMiCarrito = permitRepository.save(new PermitEntity(Permits.VER_MI_CARRITO));
             PermitEntity pagarCarrito = permitRepository.save(new PermitEntity(Permits.PAGAR_CARRITO));
-            
+            PermitEntity verMisCarritos = permitRepository.save(new PermitEntity(Permits.VER_MIS_CARRITOS));
+            PermitEntity cancelarPedido = permitRepository.save(new PermitEntity(Permits.CANCELAR_PEDIDO));
+
+
             // Permisos exclusivos de admin
-            PermitEntity verTodosPedidos = permitRepository.save(new PermitEntity(Permits.VER_TODOS_PEDIDOS));
+            PermitEntity verTodosCarritos = permitRepository.save(new PermitEntity(Permits.VER_TODOS_CARRITOS));
+            PermitEntity verCarritoCliente = permitRepository.save(new PermitEntity(Permits.VER_CARRITO_CLIENTE));
             PermitEntity modificarEstadoPedido = permitRepository.save(new PermitEntity(Permits.MODIFICAR_ESTADO_PEDIDO));
             PermitEntity verTodosUsuarios = permitRepository.save(new PermitEntity(Permits.VER_TODOS_USUARIOS));
+            PermitEntity verUsuarioCliente = permitRepository.save(new PermitEntity(Permits.VER_USUARIO_CLIENTE));
+            PermitEntity modificarUsuarioCliente = permitRepository.save(new PermitEntity(Permits.MODIFICAR_USUARIO_CLIENTE));
+            PermitEntity eliminarUsuarioCliente = permitRepository.save(new PermitEntity(Permits.ELIMINAR_USUARIO_CLIENTE));
             PermitEntity modificarPrecios = permitRepository.save(new PermitEntity(Permits.MODIFICAR_PRECIOS));
             PermitEntity verEstadisticas = permitRepository.save(new PermitEntity(Permits.VER_ESTADISTICAS));
-            PermitEntity actualizarUsuario = permitRepository.save(new PermitEntity(Permits.ACTUALIZAR_USUARIO));
             PermitEntity verPagos = permitRepository.save(new PermitEntity(Permits.VER_PAGOS));
             PermitEntity actualizarPago = permitRepository.save(new PermitEntity(Permits.ACTUALIZAR_PAGO));
-            PermitEntity actualizarOrden = permitRepository.save(new PermitEntity(Permits.ACTUALIZAR_ORDEN));
 
             // Agregar TODOS los permisos al admin
             adminRole.addPermit(verCuenta);
             adminRole.addPermit(crearCuenta);
             adminRole.addPermit(modificarCuenta);
             adminRole.addPermit(eliminarCuenta);
-            adminRole.addPermit(eliminarPedido);
-            adminRole.addPermit(verCarrito);
-            adminRole.addPermit(verTodosPedidos);
+            adminRole.addPermit(verTodosCarritos);
+            adminRole.addPermit(verCarritoCliente);
             adminRole.addPermit(modificarEstadoPedido);
             adminRole.addPermit(verTodosUsuarios);
+            adminRole.addPermit(verUsuarioCliente);
+            adminRole.addPermit(modificarUsuarioCliente);
+            adminRole.addPermit(eliminarUsuarioCliente);
             adminRole.addPermit(modificarPrecios);
             adminRole.addPermit(verEstadisticas);
-            adminRole.addPermit(actualizarUsuario);
             adminRole.addPermit(verPagos);
             adminRole.addPermit(actualizarPago);
-            adminRole.addPermit(actualizarOrden);
 
             roleRepository.save(adminRole);
 
@@ -96,10 +106,12 @@ public class DataLoader implements CommandLineRunner {
             clienteRole.addPermit(eliminarCuenta);
             clienteRole.addPermit(crearCarrito);
             clienteRole.addPermit(cargarPedido);
+            clienteRole.addPermit(modificarPedido);
             clienteRole.addPermit(eliminarPedido);
-            clienteRole.addPermit(verCarrito);
+            clienteRole.addPermit(verMiCarrito);
             clienteRole.addPermit(pagarCarrito);
-            clienteRole.addPermit(verPagos);
+            clienteRole.addPermit(verMisCarritos);
+            clienteRole.addPermit(cancelarPedido);
 
             roleRepository.save(clienteRole);
         }

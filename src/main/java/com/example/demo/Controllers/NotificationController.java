@@ -4,6 +4,7 @@ import com.example.demo.Model.DTOS.Response.NotificationResponse;
 import com.example.demo.Services.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +39,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "401", description = "No autorizado")
     })
     @GetMapping("/unread")
+    @PreAuthorize("hasRole('cliente')")
     public ResponseEntity<List<NotificationResponse>> getUnread(Authentication authentication) {
         return ResponseEntity.ok(
                 notificationService.getUnreadForUser(authentication.getName())
@@ -54,6 +56,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "401", description = "No autorizado")
     })
     @PatchMapping("/{id}/read")
+    @PreAuthorize("hasRole('cliente')")
     public ResponseEntity<Void> markAsRead(
             @Parameter(description = "ID de la notificación")
             @PathVariable UUID id) {
@@ -71,6 +74,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "401", description = "No autorizado")
     })
     @PatchMapping("/mark-all-read")
+    @PreAuthorize("hasRole('cliente')")
     public ResponseEntity<Void> markAllAsRead(Authentication authentication) {
         notificationService.markAllAsRead(authentication.getName());
         return ResponseEntity.ok().build();
