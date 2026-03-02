@@ -61,6 +61,7 @@ public class PricingService {
         PriceCalculationResponse response = new PriceCalculationResponse();
         response.setTotal(total);
         response.setPricePerSheet(precioHoja);
+        response.setDoubleSided(doubleSided);
         response.setBindingPrice(bindingPrice);
 
         return response;

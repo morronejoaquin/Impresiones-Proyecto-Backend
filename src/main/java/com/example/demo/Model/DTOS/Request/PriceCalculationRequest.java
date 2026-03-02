@@ -15,7 +15,7 @@ public class PriceCalculationRequest {
 
     private boolean color;
 
-    private boolean isDoubleSided;
+    private boolean doubleSided;
 
     private BindingTypeEnum binding;
 }
