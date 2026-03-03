@@ -255,6 +255,17 @@ public class CartController {
         );
     }
 
+    @Operation(summary = "Cancelar un pedido ya realizado")
+    @PatchMapping("/cancel-order/{cartId}")
+    @PreAuthorize("hasAuthority('CANCELAR_PEDIDO')")
+    public ResponseEntity<String> cancelarPedido(
+            Authentication authentication,
+            @Parameter(description = "ID del carrito")
+            @PathVariable UUID cartId){
+        service.cancelarPedido(authentication.getName(), cartId);
+        return ResponseEntity.ok("Pedido cancelado correctamente");
+    }
+
     @Operation(summary = "Carritos activos para administrador")
     @GetMapping("/admin/orders")
     @PreAuthorize("hasRole('administrador')")

@@ -288,8 +288,8 @@ public class CartService {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
-        Page<CartEntity> carritos = cartRepository.findByUser_IdAndStatusNotNullAndDeletedFalseOrderByCreatedAtDesc(
-                user.getId(), pageable);
+        Page<CartEntity> carritos = cartRepository.findByUser_IdAndStatusNotNullAndStatusNotAndDeletedFalseOrderByCreatedAtDesc(
+                user.getId(), OrderStatusEnum.CANCELLED, pageable);
 
         return carritos.map(cart -> {
             PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cart.getId())
@@ -297,7 +297,7 @@ public class CartService {
 
             return CartHistoryResponse.builder()
                     .cartId(cart.getId())
-                    .createdAt(cart.getCreatedAt())
+                    .admReceivedAt(cart.getAdmReceivedAt())
                     .status(cart.getStatus())
                     .total(cart.getTotal())
                     .paymentMethod(payment != null ? payment.getPaymentMethod().name() : "N/A")
@@ -307,6 +307,26 @@ public class CartService {
                             .toList())
                     .build();
         });
+    }
+
+    public void cancelarPedido(String email, UUID cartId){
+        UserEntity user = getUserByEmail(email);
+
+        CartEntity cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+
+        if (!cart.getUser().getId().equals(user.getId())) {
+            throw new IllegalStateException("No tienes permiso para cancelar este pedido");
+        }
+
+        if (cart.getStatus() != OrderStatusEnum.PENDING) {
+            throw new IllegalStateException("No se puede cancelar un pedido que ya esta en proceso");
+        }
+
+        cart.setCartStatus(CartStatusEnum.CANCELLED);
+        cart.setStatus(OrderStatusEnum.CANCELLED);
+
+        cartRepository.save(cart);
     }
 
     private void recalcularTotal(CartEntity cart){

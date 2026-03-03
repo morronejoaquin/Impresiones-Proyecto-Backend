@@ -16,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CartHistoryResponse {
     private UUID cartId;
-    private Instant createdAt;
+    private Instant admReceivedAt;
     private OrderStatusEnum status;
     private double total;
 

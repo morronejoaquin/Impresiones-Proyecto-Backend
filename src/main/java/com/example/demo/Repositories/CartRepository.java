@@ -78,11 +78,13 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
     SELECT c FROM CartEntity c
     WHERE c.user.id = :userId
       AND c.status IS NOT NULL
+      AND c.status != CANCELLED
       AND c.deleted = false
     ORDER BY c.createdAt DESC
     """)
-    Page<CartEntity> findByUser_IdAndStatusNotNullAndDeletedFalseOrderByCreatedAtDesc(
+    Page<CartEntity> findByUser_IdAndStatusNotNullAndStatusNotAndDeletedFalseOrderByCreatedAtDesc(
             @Param("userId") UUID userId,
+            @Param("status") OrderStatusEnum status,
             Pageable pageable
     );
 
