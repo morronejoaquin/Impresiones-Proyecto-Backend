@@ -54,7 +54,7 @@ public class AdminDashboardService {
     }
 
     public List<OrderSummaryByStatusResponse> getOrderSummaryByStatus(Instant start, Instant end) {
-        List<OrderItemEntity> orders = orderItemRepository.findAllByCreatedAtBetween(start, end);
+        List<OrderItemEntity> orders = orderItemRepository.findAllByLastModifiedAtBetween(start, end);
 
         // 1. Agrupar los ítems por el Cart al que pertenecen para evitar duplicados
         Map<UUID, List<OrderItemEntity>> itemsByCart = orders.stream()
@@ -84,7 +84,7 @@ public class AdminDashboardService {
     }
 
     public PrintingStatisticsResponse getPrintingStatistics(Instant start, Instant end) {
-        List<OrderItemEntity> orders = orderItemRepository.findAllByCreatedAtBetween(start, end);
+        List<OrderItemEntity> orders = orderItemRepository.findAllByLastModifiedAtBetween(start, end);
         
         int totalSheets = 0;
         int colorSheets = 0;

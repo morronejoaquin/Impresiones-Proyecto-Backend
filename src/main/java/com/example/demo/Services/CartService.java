@@ -1,5 +1,6 @@
 package com.example.demo.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Mappers.CartMapper;
 import com.example.demo.Model.DTOS.Mappers.OrderItemMapper;
 import com.example.demo.Model.DTOS.Request.CartCreateRequest;
@@ -9,10 +10,7 @@ import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartWithItemsResponse;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Model.Entities.*;
-import com.example.demo.Model.Enums.AdminDateFilterType;
-import com.example.demo.Model.Enums.CartStatusEnum;
-import com.example.demo.Model.Enums.FileTypeEnum;
-import com.example.demo.Model.Enums.OrderStatusEnum;
+import com.example.demo.Model.Enums.*;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.OrderItemRepository;
 import com.example.demo.Repositories.PaymentRepository;
@@ -30,7 +28,6 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -59,7 +56,12 @@ public class CartService {
     // Método auxiliar para obtener usuario por email
     private UserEntity getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private CartEntity getCartByCartId(UUID cartId){
+        return cartRepository.findById(cartId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_NOT_FOUND));
     }
 
     // Crear carrito usando email del usuario autenticado
@@ -79,7 +81,7 @@ public class CartService {
 
     public CartResponse save(CartCreateRequest request){
         UserEntity user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         verifyCart(user.getId());
 
@@ -100,22 +102,20 @@ public class CartService {
                 .anyMatch(cart -> CartStatusEnum.OPEN.equals(cart.getCartStatus()));
 
         if (hasOpenCart) {
-            throw new IllegalStateException("El usuario ya tiene un carrito en uso");
+            throw new BusinessException(ErrorCode.USER_HAS_OPEN_CART);
         }
     }
 
     public CartResponse findById(UUID id){
-        return cartMapper.toResponse(cartRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado")));
+        return cartMapper.toResponse(getCartByCartId(id));
     }
 
     public OrderItemResponse agregar(UUID cartId, OrderItemCreateRequest request, String driveFileId, String originalFileName, FileMetaData metadata){
 
-        CartEntity cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        CartEntity cart = getCartByCartId(cartId);
 
         if(cart.getCartStatus() != CartStatusEnum.OPEN){
-            throw new IllegalStateException("El carrito no está abierto");
+            throw new BusinessException(ErrorCode.CART_IS_CLOSED);
         }
 
         OrderItemEntity item = orderItemMapper.toEntity(request);
@@ -149,8 +149,8 @@ public class CartService {
     }
 
     public CartResponse closeCart(UUID cartId){
-        CartEntity cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        CartEntity cart = getCartByCartId(cartId);
+
         cart.setCartStatus(CartStatusEnum.IN_PROGRESS);
         cart.setStatus(OrderStatusEnum.PENDING);
         cart.setAdmReceivedAt(Instant.now());
@@ -169,15 +169,14 @@ public class CartService {
 
     public void eliminarItem(UUID cartId, UUID itemId){
 
-        CartEntity cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        CartEntity cart = getCartByCartId(cartId);
 
         if(cart.getCartStatus() != CartStatusEnum.OPEN){
-            throw new IllegalStateException("No se pueden modificar carritos cerrados");
+            throw new BusinessException(ErrorCode.CART_IS_CLOSED);
         }
 
         OrderItemEntity item = orderItemRepository.findByIdAndDeletedFalse(itemId)
-                .orElseThrow(() -> new NoSuchElementException("Item no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
 
         item.setDeleted(true);
         recalcularTotal(cart);
@@ -202,14 +201,14 @@ public class CartService {
     }
     
     public Page<CartResponse> findDeliveredForAdmin(Instant date,AdminDateFilterType dateType,Pageable pageable){
-    return cartRepository.findDeliveredForAdmin(OrderStatusEnum.DELIVERED,date,dateType,pageable)
-    .map(cartMapper::toResponse);
+        return cartRepository.findDeliveredForAdmin(OrderStatusEnum.DELIVERED,date,dateType,pageable)
+        .map(cartMapper::toResponse);
     }
 
 
     public CartWithItemsResponse findOpenCart(UUID userId){
         CartEntity cart = cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(userId, CartStatusEnum.OPEN)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_NOT_FOUND, "El usuario no tiene un carrito activo"));
 
         List<OrderItemEntity> activeItems = cart.getItems().stream()
                 .filter(item -> !item.isDeleted())
@@ -244,7 +243,7 @@ public class CartService {
     public CartEntity getOpenCartForUser(String email) {
         UserEntity user = getUserByEmail(email);
         return cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(user.getId(), CartStatusEnum.OPEN)
-                .orElseThrow(() -> new NoSuchElementException("No tienes un carrito activo"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_NOT_FOUND, "El usuario no tiene un carrito activo"));
     }
 
     // Agregar item al carrito usando email
@@ -269,10 +268,10 @@ public class CartService {
     public void eliminarItem(UUID itemId, String email) {
         UserEntity user = getUserByEmail(email);
         OrderItemEntity item = orderItemRepository.findById(itemId)
-                .orElseThrow(() -> new NoSuchElementException("Item no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
         
         if (!item.getCart().getUser().getId().equals(user.getId())) {
-            throw new IllegalStateException("No tienes permiso para eliminar este item");
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
         
         item.setDeleted(true);
@@ -285,11 +284,16 @@ public class CartService {
 
     // Obtener pedidos del usuario (carritos no abiertos)
     public Page<CartHistoryResponse> obtenerPedidosDelUsuario(String email, Pageable pageable) {
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+        UserEntity user = getUserByEmail(email);
 
         Page<CartEntity> carritos = cartRepository.findByUser_IdAndStatusNotNullAndStatusNotAndDeletedFalseOrderByCreatedAtDesc(
                 user.getId(), OrderStatusEnum.CANCELLED, pageable);
+
+        for (CartEntity cart: carritos){
+            cart.setItems(cart.getItems().stream()
+                    .filter(item -> !item.isDeleted())
+                    .toList());
+        }
 
         return carritos.map(cart -> {
             PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cart.getId())
@@ -312,15 +316,14 @@ public class CartService {
     public void cancelarPedido(String email, UUID cartId){
         UserEntity user = getUserByEmail(email);
 
-        CartEntity cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        CartEntity cart = getCartByCartId(cartId);
 
         if (!cart.getUser().getId().equals(user.getId())) {
-            throw new IllegalStateException("No tienes permiso para cancelar este pedido");
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
         if (cart.getStatus() != OrderStatusEnum.PENDING) {
-            throw new IllegalStateException("No se puede cancelar un pedido que ya esta en proceso");
+            throw new BusinessException(ErrorCode.ORDER_ALREADY_PROCESS);
         }
 
         cart.setCartStatus(CartStatusEnum.CANCELLED);
@@ -339,14 +342,13 @@ public class CartService {
     public void validarFormato(MultipartFile file) {
         String name = file.getOriginalFilename();
         if (name == null || !name.matches(".*\\.(pdf|jpg|png)$")) {
-            throw new IllegalArgumentException("Formato no permitido");
+            throw new BusinessException(ErrorCode.FILE_NOT_ALLOWED);
         }
     }
 
     public CartWithItemsResponse findWithItems(UUID cartId){
 
-        CartEntity cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        CartEntity cart = getCartByCartId(cartId);
 
         cart.setItems(cart.getItems().stream()
                 .filter(item -> !item.isDeleted())
@@ -365,13 +367,12 @@ public class CartService {
 
     public CartWithItemsResponse actualizarEstado(UUID cartId, OrderStatusEnum nuevoEstado){
 
-        CartEntity cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+        CartEntity cart = getCartByCartId(cartId);
 
         // No podemos cambiar los estados en entregado o cancelado
         if (cart.getStatus() == OrderStatusEnum.DELIVERED ||
             cart.getStatus() == OrderStatusEnum.CANCELLED) {
-            throw new IllegalStateException("No se puede modificar un carrito entregado o cancelado");
+            throw new BusinessException(ErrorCode.ORDER_ALREADY_DELIVERED);
         }
 
         if (nuevoEstado == null) {
@@ -416,13 +417,13 @@ public class CartService {
                 .map(cartMapper::toResponse);
     }
 
-    public List<OrderItemResponse> obtenerOrdenesPorCarrito(UUID carritoId) {
+    public List<OrderItemResponse> obtenerOrdenesPorCarrito(UUID cartId) {
         // Validar que el carrito exista
-        if(!cartRepository.existsById(carritoId)){
-            throw new NoSuchElementException("Carrito no encontrado");
+        if(!cartRepository.existsById(cartId)){
+            throw new BusinessException(ErrorCode.CART_NOT_FOUND);
         }
 
-        return orderItemRepository.findAllByCartIdAndDeletedFalse(carritoId)
+        return orderItemRepository.findAllByCartIdAndDeletedFalse(cartId)
                 .stream()
                 .map(orderItemMapper::toResponse)
                 .toList();
@@ -431,7 +432,7 @@ public class CartService {
     public OrderItemResponse obtenerOrdenEspecificaPorCarrito(UUID carritoId, UUID ordenId) {
         return orderItemRepository.findByIdAndCartIdAndDeletedFalse(ordenId, carritoId)
                 .map(orderItemMapper::toResponse)
-                .orElseThrow(() -> new NoSuchElementException("La orden no existe o no pertenece a este carrito"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
     }
 
     public Page<CartResponse> getActiveCartsForAdmin(Pageable pageable) {

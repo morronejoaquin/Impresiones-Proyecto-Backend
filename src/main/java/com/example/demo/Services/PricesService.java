@@ -1,9 +1,11 @@
 package com.example.demo.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Mappers.PricesMapper;
 import com.example.demo.Model.DTOS.Request.PricesUpdateRequest;
 import com.example.demo.Model.DTOS.Response.PricesResponse;
 import com.example.demo.Model.Entities.PricesEntity;
+import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Repositories.PricesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -48,7 +50,7 @@ public class PricesService {
 
     public PricesResponse getCurrentPrices(){
         PricesEntity entity = pricesRepository.findFirstByValidToIsNullOrderByValidFromDesc()
-                .orElseThrow(() -> new NoSuchElementException("No hay precios configurados"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRICES_NOT_CONFIGURED));
         return pricesMapper.toResponse(entity);
     }
 
@@ -71,7 +73,7 @@ public class PricesService {
 
     public PricesResponse findById(UUID id){
         PricesEntity entity = pricesRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Precios no encontrados"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRICES_NOT_FOUND));
 
         return pricesMapper.toResponse(entity);
     }

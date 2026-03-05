@@ -1,8 +1,10 @@
 package com.example.demo.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Response.NotificationResponse;
 import com.example.demo.Model.Entities.NotificationEntity;
 import com.example.demo.Model.Entities.UserEntity;
+import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Repositories.NotificationRepository;
 import com.example.demo.Repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,7 @@ public class NotificationService {
     @Transactional
     public void createNotification(String email, String message) {
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         NotificationEntity notification = new NotificationEntity();
         notification.setUser(user);

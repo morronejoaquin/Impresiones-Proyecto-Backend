@@ -1,9 +1,11 @@
 package com.example.demo.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Response.PriceCalculationResponse;
 import com.example.demo.Model.Entities.OrderItemEntity;
 import com.example.demo.Model.Entities.PricesEntity;
 import com.example.demo.Model.Enums.BindingTypeEnum;
+import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Repositories.PricesRepository;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +72,7 @@ public class PricingService {
     public PricesEntity obtenerPreciosVigentes(){
         return pricesRepository
                 .findFirstByValidToIsNullOrderByValidFromDesc()
-                .orElseThrow(() -> new RuntimeException("No hay precios vigentes configurados"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRICES_NOT_CONFIGURED));
 
     }
 }

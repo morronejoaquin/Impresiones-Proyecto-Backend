@@ -1,8 +1,10 @@
 package com.example.demo.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Mappers.StoreLocationMapper;
 import com.example.demo.Model.DTOS.Response.StoreLocationResponse;
 import com.example.demo.Model.Entities.StoreLocationEntity;
+import com.example.demo.Model.Enums.ErrorCode;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.Repositories.StoreLocationRepository;
@@ -21,7 +23,7 @@ public class StoreLocationService {
     public StoreLocationResponse getLocation(){
         StoreLocationEntity entity = repo.findAll()
                 .stream().findFirst()
-                .orElseThrow(() -> new IllegalStateException("No hay ubicacion configurada"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.LOCATION_NOT_CONFIGURED));
 
         return storeLocationMapper.toResponse(entity);
     }

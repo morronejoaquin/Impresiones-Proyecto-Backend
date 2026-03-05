@@ -1,8 +1,10 @@
 package com.example.demo.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Response.PaymentPreferenceResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.PaymentEntity;
+import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Model.Enums.PaymentMethodEnum;
 import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Repositories.CartRepository;
@@ -46,7 +48,7 @@ public class MercadoPagoService {
         MercadoPagoConfig.setAccessToken(accessToken);
 
         CartEntity cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new NoSuchElementException("Carrito no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_NOT_FOUND));
 
         // 1. BUSCAR si ya existe un pago PENDING para este carrito
         PaymentEntity payment = paymentRepository.findByCartAndPaymentStatus(cart, PaymentStatusEnum.PENDING)

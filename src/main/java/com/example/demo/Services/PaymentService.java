@@ -1,5 +1,6 @@
 package com.example.demo.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Mappers.PaymentMapper;
 import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
 import com.example.demo.Model.DTOS.Request.PaymentStatusUpdateRequest;
@@ -9,6 +10,7 @@ import com.example.demo.Model.DTOS.Response.PaymentPreferenceResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.PaymentEntity;
+import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Model.Enums.PaymentMethodEnum;
 import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Repositories.CartRepository;
@@ -53,7 +55,7 @@ public class PaymentService {
 
     public CartHistoryResponse findById(UUID id) {
         PaymentEntity entity = paymentRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Pago no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
 
         return paymentMapper.toHistoryResponse(entity);
     }
@@ -64,7 +66,7 @@ public class PaymentService {
         CartEntity cart = cartService.getOpenCartForUser(email);
 
         if(cart.getItems().isEmpty()){
-            throw new IllegalArgumentException("Agregue items antes de procesar el carrito");
+            throw new BusinessException(ErrorCode.CART_IS_EMPTY);
         }
 
         // si es por mercado pago, redirige a mercadoPagoService
@@ -78,7 +80,7 @@ public class PaymentService {
             return processManualPayment(cart, request.getPaymentMethod());
         }
 
-        throw new IllegalArgumentException("Método de pago no soportado");
+        throw new BusinessException(ErrorCode.PAYMENT_NOT_ALLOWED);
     }
 
     private PaymentResponse processManualPayment(CartEntity cart, PaymentMethodEnum method) {
@@ -106,7 +108,7 @@ public class PaymentService {
     @Transactional
     public PaymentResponse updatePaymentStatus(UUID cartId, PaymentStatusUpdateRequest request) {
         PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cartId)
-                .orElseThrow(() -> new NoSuchElementException("Pago no encontrado para este carrito"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND, "Pago no encontrado para este carrito"));
 
         PaymentStatusEnum newStatus = request.getStatus();
         payment.setPaymentStatus(newStatus);

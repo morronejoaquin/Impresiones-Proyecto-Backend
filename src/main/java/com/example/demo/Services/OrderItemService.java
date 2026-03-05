@@ -1,11 +1,13 @@
 package com.example.demo.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Mappers.OrderItemMapper;
 import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Request.OrderItemUpdateRequest;
 import com.example.demo.Model.DTOS.Response.OrderItemResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.OrderItemEntity;
+import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.OrderItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,14 +49,14 @@ public class OrderItemService {
 
     public OrderItemResponse findById(UUID id){
         OrderItemEntity entity = orderItemRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Pedido no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND, "Item no encontrado"));
 
         return orderItemMapper.toResponse(entity);
     }
 
     public OrderItemResponse update(UUID id, OrderItemUpdateRequest request) {
         OrderItemEntity entity = orderItemRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Item no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND, "Item no encontrado"));
 
         if (request.getCopies() != null) {
             entity.setCopies(request.getCopies());

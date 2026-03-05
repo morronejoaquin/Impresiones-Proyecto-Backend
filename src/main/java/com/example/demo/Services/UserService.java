@@ -1,10 +1,12 @@
 package com.example.demo.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Mappers.UserMapper;
 import com.example.demo.Model.DTOS.Request.UpdateProfileRequest;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Model.DTOS.Response.ProfileResponse;
 import com.example.demo.Model.Entities.UserEntity;
+import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Repositories.UserRepository;
 import com.example.demo.Security.Model.Entities.CredentialsEntity;
 import com.example.demo.Security.Repositories.CredentialsRepository;
@@ -45,14 +47,14 @@ public class UserService {
 
     public UserResponse findById(UUID id){
         UserEntity entity = userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         return userMapper.toResponse(entity);
     }
 
     public void update(UUID id, Map<String, Object> camposActualizados) {
         UserEntity entity = userRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (camposActualizados.containsKey("id")) {
             throw new IllegalArgumentException("No está permitido modificar el campo 'id'");
@@ -74,10 +76,10 @@ public class UserService {
 
     public ProfileResponse getProfile(String email) {
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         CredentialsEntity credentials = credentialsRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("Credenciales del usuario no encontradas"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CREDENTIALS_NOT_FOUND));
 
         String role = credentials.getRoles().stream()
                 .map(roleEntity -> roleEntity.getRole().name())
@@ -101,7 +103,7 @@ public class UserService {
         String email = authentication.getName();
 
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         user.setName(request.getName());
         user.setSurname(request.getSurname());
