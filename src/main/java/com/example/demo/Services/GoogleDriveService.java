@@ -1,111 +1,84 @@
 package com.example.demo.Services;
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.UserCredentials;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.List;
+import java.util.Collections;
 
 @Service
 public class GoogleDriveService {
     private static final String APPLICATION_NAME = "Impresiones Backend";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private static final List<String> SCOPES = List.of(DriveScopes.DRIVE_FILE);
-
     private Drive drive;
 
     @Value("${google.drive.folder-id}")
     private String folderId;
 
+    // Nuevos valores para OAuth2 Personal
+    @Value("${google.drive.client-id}")
+    private String clientId;
+
+    @Value("${google.drive.client-secret}")
+    private String clientSecret;
+
+    @Value("${google.drive.refresh-token}")
+    private String refreshToken;
+
     @PostConstruct
     public void init() {
         try {
-            InputStream in = getClass().getResourceAsStream("/credentials.json");
-
-            if (in == null) {
-                System.out.println("⚠️ Advertencia: credentials.json no encontrado. GoogleDriveService deshabilitado.");
-                return;
-            }
-
-            GoogleClientSecrets clientSecrets =
-                    GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-
-            GoogleAuthorizationCodeFlow flow =
-                    new GoogleAuthorizationCodeFlow.Builder(
-                            GoogleNetHttpTransport.newTrustedTransport(),
-                            JSON_FACTORY,
-                            clientSecrets,
-                            SCOPES
-                    )
-                            .setDataStoreFactory(new FileDataStoreFactory(
-                                    new java.io.File("tokens")))
-                            .setAccessType("offline")
-                            .build();
-
-            LocalServerReceiver receiver = new LocalServerReceiver.Builder()
-                    .setPort(8888)
+            // Configuramos las credenciales usando el Refresh Token de tu cuenta @gmail.com
+            GoogleCredentials credentials = UserCredentials.newBuilder()
+                    .setClientId(clientId)
+                    .setClientSecret(clientSecret)
+                    .setRefreshToken(refreshToken)
                     .build();
-
-            Credential credential =
-                    new AuthorizationCodeInstalledApp(flow, receiver)
-                            .authorize("user");
 
             drive = new Drive.Builder(
                     GoogleNetHttpTransport.newTrustedTransport(),
                     JSON_FACTORY,
-                    credential
+                    new HttpCredentialsAdapter(credentials)
             )
                     .setApplicationName(APPLICATION_NAME)
                     .build();
+            
+            System.out.println("✅ GoogleDriveService conectado exitosamente a cuenta personal.");
+
         } catch (Exception e) {
-            System.out.println("⚠️ Error inicializando GoogleDriveService: " + e.getMessage());
-            System.out.println("   La funcionalidad de Google Drive estará deshabilitada.");
+            System.err.println("⚠️ Error inicializando GoogleDriveService con OAuth2: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public String uploadFile(String fileName, InputStream fileStream, String contentType) throws Exception {
-        // Si drive no está inicializado, devolver un ID mock para desarrollo
         if (drive == null) {
-            System.out.println("⚠️ GoogleDrive deshabilitado. Usando ID mock para: " + fileName);
+            System.out.println("⚠️ GoogleDrive deshabilitado.");
             return "mock-drive-id-" + System.currentTimeMillis();
-        }
-
-        if (folderId == null || folderId.isBlank()) {
-            throw new IllegalStateException("google.drive.folder-id no está configurado");
-        }
-
-        if (fileName == null || contentType == null) {
-            throw new IllegalArgumentException("Archivo inválido");
         }
 
         File fileMetadata = new File();
         fileMetadata.setName(fileName);
+        fileMetadata.setParents(Collections.singletonList(folderId));
 
-        fileMetadata.setParents(List.of(folderId));
+        InputStreamContent mediaContent = new InputStreamContent(contentType, fileStream);
 
-        InputStreamContent mediaContent =
-                new InputStreamContent(contentType, fileStream);
-
+        // Al subir como 'tú', el archivo usará tus 15GB automáticamente
         File file = drive.files().create(fileMetadata, mediaContent)
                 .setFields("id")
                 .execute();
 
-        return file.getId(); // ⬅️ ESTE ES EL driveFileId
+        return file.getId();
     }
 
     public InputStream descargarArchivo(String driveFileId) throws Exception {
