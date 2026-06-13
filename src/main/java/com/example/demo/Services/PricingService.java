@@ -53,9 +53,9 @@ public class PricingService {
         // LÓGICA ENCUADERNACIÓN:
         double bindingPrice = 0;
         if (binding == BindingTypeEnum.RINGED) {
-            bindingPrice = prices.getPriceRingedBinding();
+            bindingPrice = prices.getPriceRingedBinding() * copies;
         } else if (binding == BindingTypeEnum.STAPLED) {
-            bindingPrice = prices.getPriceStapledBinding();
+            bindingPrice = prices.getPriceStapledBinding() * copies;
         }
 
         double total = subtotalImpresiones + bindingPrice;
