@@ -10,6 +10,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class NotificationResponse {
     private UUID id;
+    private String relatedOrderId;
     private String message;
     private Instant createdAt;
 }

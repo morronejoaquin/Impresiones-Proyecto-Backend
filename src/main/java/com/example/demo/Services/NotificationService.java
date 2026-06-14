@@ -24,12 +24,13 @@ public class NotificationService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void createNotification(String email, String message) {
+    public void createNotification(String email, String cartId, String message) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         NotificationEntity notification = new NotificationEntity();
         notification.setUser(user);
+        notification.setRelatedOrderId(cartId);
         notification.setMessage(message);
         notification.setCreatedAt(Instant.now());
         notification.setRead(false);
@@ -41,7 +42,7 @@ public class NotificationService {
     public List<NotificationResponse> getUnreadForUser(String email) {
         return notificationRepository.findByUserEmailAndIsReadFalseOrderByCreatedAtDesc(email)
                 .stream()
-                .map(n -> new NotificationResponse(n.getId(), n.getMessage(), n.getCreatedAt()))
+                .map(n -> new NotificationResponse(n.getId(), n.getRelatedOrderId(), n.getMessage(), n.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 

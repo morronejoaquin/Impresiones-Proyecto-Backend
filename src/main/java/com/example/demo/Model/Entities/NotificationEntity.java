@@ -25,6 +25,9 @@ public class NotificationEntity {
     private UserEntity user;
 
     @Column(nullable = false)
+    private String relatedOrderId;
+
+    @Column(nullable = false)
     private String message;
 
     @CreatedDate

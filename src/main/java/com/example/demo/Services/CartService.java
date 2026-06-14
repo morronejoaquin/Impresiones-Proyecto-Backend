@@ -385,7 +385,7 @@ public class CartService {
 
         if (nuevoEstado == OrderStatusEnum.READY) {
             String message = "¡Tu pedido #" + cart.getId().toString().substring(0,8) + " está listo para retirar!";
-            notificationService.createNotification(cart.getUser().getEmail(), message);
+            notificationService.createNotification(cart.getUser().getEmail(), String.valueOf(cartId), message);
         }
 
         // Setear fecha y hora
