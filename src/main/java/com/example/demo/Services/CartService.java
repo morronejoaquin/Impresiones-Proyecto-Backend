@@ -326,10 +326,16 @@ public class CartService {
             throw new BusinessException(ErrorCode.ORDER_ALREADY_PROCESS);
         }
 
+        PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cartId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+
+
         cart.setCartStatus(CartStatusEnum.CANCELLED);
         cart.setStatus(OrderStatusEnum.CANCELLED);
+        payment.setPaymentStatus(PaymentStatusEnum.CANCELLED);
 
         cartRepository.save(cart);
+        paymentRepository.save(payment);
     }
 
     private void recalcularTotal(CartEntity cart){
@@ -393,6 +399,14 @@ public class CartService {
             cart.setDeliveredAt(Instant.now());
         } else if (nuevoEstado == OrderStatusEnum.READY){
             cart.setCompletedAt(Instant.now());
+        }
+
+        if (nuevoEstado == OrderStatusEnum.CANCELLED){
+            PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cartId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+
+            payment.setPaymentStatus(PaymentStatusEnum.CANCELLED);
+            paymentRepository.save(payment);
         }
 
         CartEntity actualizado = cartRepository.save(cart);

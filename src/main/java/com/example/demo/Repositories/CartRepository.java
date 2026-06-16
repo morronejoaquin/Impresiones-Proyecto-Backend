@@ -1,5 +1,6 @@
 package com.example.demo.Repositories;
 
+import com.example.demo.Model.DTOS.Response.OrderSummaryByStatusResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Enums.AdminDateFilterType;
 import com.example.demo.Model.Enums.CartStatusEnum;
@@ -139,5 +140,14 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
             @Param("endDate") String endDate,
             Pageable pageable
     );
+
+    @Query("SELECT new com.example.demo.Model.DTOS.Response.OrderSummaryByStatusResponse(" +
+            "c.status, COUNT(c), SUM(c.total)) " +
+            "FROM CartEntity c " +
+            "WHERE c.lastModifiedAt BETWEEN :start AND :end " +
+            "AND c.cartStatus != 'OPEN'" +
+            "AND c.cartStatus != 'CANCELLED' " +
+            "GROUP BY c.status")
+    List<OrderSummaryByStatusResponse> getOrderSummary(@Param("start") Instant start, @Param("end") Instant end);
 
 }

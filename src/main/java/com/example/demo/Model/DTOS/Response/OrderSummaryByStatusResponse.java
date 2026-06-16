@@ -1,19 +1,13 @@
 package com.example.demo.Model.DTOS.Response;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.example.demo.Model.Enums.OrderStatusEnum;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Setter
-@Getter
+@Data
+@AllArgsConstructor
 public class OrderSummaryByStatusResponse {
-    private String status;
-    private int count;
-    private double totalAmount;
-
-    public OrderSummaryByStatusResponse(String status, int count, double totalAmount) {
-        this.status = status;
-        this.count = count;
-        this.totalAmount = totalAmount;
-    }
-
+    private OrderStatusEnum status;
+    private Long count;
+    private Double totalAmount;
 }
