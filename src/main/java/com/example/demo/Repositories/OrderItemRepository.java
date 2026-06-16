@@ -32,6 +32,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItemEntity, UUID
             "FROM OrderItemEntity o " +
             "WHERE o.cart.lastModifiedAt BETWEEN :start AND :end " +
             "AND o.deleted = false " +
+            "AND o.cart.status != 'PENDING'" +
+            "AND o.cart.cartStatus != 'OPEN'" +
             "AND o.cart.cartStatus != 'CANCELLED'")
     PrintingStatisticsQueryResponse getPrintingStats(@Param("start") Instant start, @Param("end") Instant end);
 }
