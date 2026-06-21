@@ -22,7 +22,7 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, UUID> {
     Optional<PaymentEntity> findTopByCartIdOrderByOrderDateDesc(UUID cartId);
 
     @Query("SELECT new com.example.demo.Model.DTOS.Response.PaymentSummaryByMethodQueryResponse(" +
-            "p.paymentMethod, SUM(p.finalPrice), COUNT(p)) " +
+            "p.paymentMethod, COALESCE(SUM(p.finalPrice), 0.0), COUNT(p)) " +
             "FROM PaymentEntity p " +
             "WHERE p.paidAt BETWEEN :start AND :end " +
             "AND p.paymentStatus = 'APPROVED' " +

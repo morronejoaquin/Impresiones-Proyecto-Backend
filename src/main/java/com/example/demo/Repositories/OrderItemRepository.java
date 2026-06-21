@@ -23,11 +23,11 @@ public interface OrderItemRepository extends JpaRepository<OrderItemEntity, UUID
     List<OrderItemEntity> findAllByDeletedTrue();
 
     @Query("SELECT new com.example.demo.Model.DTOS.Response.PrintingStatisticsQueryResponse(" +
-            "SUM(o.pages * o.copies), " +
-            "SUM(CASE WHEN o.color = true THEN o.pages * o.copies ELSE 0 END), " +
-            "SUM(CASE WHEN o.color = false THEN o.pages * o.copies ELSE 0 END), " +
-            "SUM(CASE WHEN o.binding = 'RINGED' THEN 1 ELSE 0 END), " +
-            "SUM(CASE WHEN o.binding = 'STAPLED' THEN 1 ELSE 0 END), " +
+            "COALESCE(SUM(o.pages * o.copies), 0), " +
+            "COALESCE(SUM(CASE WHEN o.color = true THEN o.pages * o.copies ELSE 0 END), 0), " +
+            "COALESCE(SUM(CASE WHEN o.color = false THEN o.pages * o.copies ELSE 0 END), 0), " +
+            "COALESCE(SUM(CASE WHEN o.binding = 'RINGED' THEN 1 ELSE 0 END), 0), " +
+            "COALESCE(SUM(CASE WHEN o.binding = 'STAPLED' THEN 1 ELSE 0 END), 0), " +
             "COUNT(o)) " +
             "FROM OrderItemEntity o " +
             "WHERE o.cart.lastModifiedAt BETWEEN :start AND :end " +

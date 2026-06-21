@@ -142,7 +142,7 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
     );
 
     @Query("SELECT new com.example.demo.Model.DTOS.Response.OrderSummaryByStatusResponse(" +
-            "c.status, COUNT(c), SUM(c.total)) " +
+            "c.status, COUNT(c), COALESCE(SUM(c.total), 0.0)) " +
             "FROM CartEntity c " +
             "WHERE c.lastModifiedAt BETWEEN :start AND :end " +
             "AND c.cartStatus != 'OPEN'" +

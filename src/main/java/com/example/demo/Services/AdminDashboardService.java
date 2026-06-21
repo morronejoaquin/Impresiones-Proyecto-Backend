@@ -47,7 +47,11 @@ public class AdminDashboardService {
         List<PaymentSummaryByMethodResponse> paymentSummary = getPaymentSummaryByMethod(start, end);
         PrintingStatisticsResponse printingStatistics = getPrintingStatistics(start, end);
 
-        return new AdminDashboardResponse(orderSummary, paymentSummary, printingStatistics);
+        return new AdminDashboardResponse(
+                orderSummary != null ? orderSummary : Collections.emptyList(),
+                paymentSummary != null ? paymentSummary : Collections.emptyList(),
+                printingStatistics != null ? printingStatistics : new PrintingStatisticsResponse(0,0,0,0,0,0,0,0)
+        );
     }
 
     public List<OrderSummaryByStatusResponse> getOrderSummaryByStatus(Instant start, Instant end) {
