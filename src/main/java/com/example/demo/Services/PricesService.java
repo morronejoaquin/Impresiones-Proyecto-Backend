@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.NoSuchElementException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -76,5 +76,12 @@ public class PricesService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRICES_NOT_FOUND));
 
         return pricesMapper.toResponse(entity);
+    }
+
+    public List<PricesResponse> getPricesHistory() {
+        return pricesRepository.findAllByOrderByValidFromAsc()
+                .stream()
+                .map(pricesMapper::toResponse)
+                .toList();
     }
 }

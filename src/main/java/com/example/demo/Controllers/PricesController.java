@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -83,5 +84,12 @@ public class PricesController {
             @PathVariable UUID id
     ){
         return ResponseEntity.ok(service.findById(id));
+    }
+
+    @Operation(summary = "Obtener historial completo para gráficos")
+    @GetMapping("/history")
+    @PreAuthorize("hasRole('administrador')")
+    public ResponseEntity<List<PricesResponse>> getPricesHistory() {
+        return ResponseEntity.ok(service.getPricesHistory());
     }
 }
