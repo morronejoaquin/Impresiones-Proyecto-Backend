@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+<div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+    <div style="background: linear-gradient(90deg, #5D6DFF 0%, #C55DFF 50%, #FF935D 100%); padding: 20px; text-align: center; color: white;">
+        <h1>¡Tu pedido está listo!</h1>
+    </div>
+
+    <div style="padding: 20px;">
+        <h2 th:text="'Hola, ' + ${nombreCliente}">Hola, Cliente</h2>
+        <p>Tu pedido <strong>#<span th:text="${#strings.length(cartId) > 16 ? #strings.substring(cartId, 0, 16) : cartId}"></span></strong> ya está listo para ser retirado.</p>
+        <p>Puedes pasar por nuestro local en el horario habitual.</p>
+
+        <a th:href="${urlPedido}" style="display: inline-block; padding: 10px 20px; background: #5D6DFF; color: white; text-decoration: none; border-radius: 5px;">
+            Ver detalle de mi pedido
+        </a>
+    </div>
+</div>
+</body>
+</html>

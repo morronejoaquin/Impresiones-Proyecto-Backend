@@ -7,9 +7,15 @@ import com.example.demo.Model.Entities.UserEntity;
 import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Repositories.NotificationRepository;
 import com.example.demo.Repositories.UserRepository;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,9 +28,22 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final JavaMailSender mailSender;
+    private final TemplateEngine templateEngine;
 
-    @Transactional
+    @Async
     public void createNotification(String email, String cartId, String message) {
+        // notificacion local
+        saveToDataBase(email, cartId, message);
+
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // notificacion por correo
+        sendEmailWithTemplate(email, user.getName(), cartId);
+    }
+
+    public void saveToDataBase(String email, String cartId, String message) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -36,6 +55,39 @@ public class NotificationService {
         notification.setRead(false);
 
         notificationRepository.save(notification);
+    }
+
+    public void sendEmailWithTemplate(String to, String nombre, String cartId) {
+        UserEntity user = userRepository.findByEmail(to)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!user.isNotificationsEnabled()) {
+            System.out.println("Usuario deshabilitó las notificaciones. No se envía correo.");
+            return;
+        }
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            // Preparar variables para el HTML
+            Context context = new Context();
+            context.setVariable("nombreCliente", nombre);
+            context.setVariable("cartId", cartId);
+            context.setVariable("urlPedido", "https://puertocolores.com/my-orders/" + cartId);
+
+            // Procesar el HTML
+            String htmlContent = templateEngine.process("order-ready", context);
+
+            helper.setTo(to);
+            helper.setSubject("Tu pedido en Puerto Colores está listo");
+            helper.setText(htmlContent, true); // El 'true' indica que es HTML
+            helper.setFrom("notificaciones@puertocolores.com");
+
+            mailSender.send(message);
+        }catch (Exception e) {
+            System.err.println("Error enviando correo: " + e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)

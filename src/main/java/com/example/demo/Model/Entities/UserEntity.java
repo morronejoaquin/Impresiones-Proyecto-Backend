@@ -29,4 +29,7 @@ public class UserEntity {
     @Column(length = 30)
     @Pattern(regexp = "^\\d+$", message = "El teléfono solo debe contener números")
     private String phone;
+
+    @Column(nullable = false)
+    private boolean notificationsEnabled;
 }

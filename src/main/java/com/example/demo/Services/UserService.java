@@ -93,6 +93,7 @@ public class UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .role(role)
+                .notificationsEnabled(user.isNotificationsEnabled())
                 .build();
     }
 
@@ -108,6 +109,7 @@ public class UserService {
         user.setName(request.getName());
         user.setSurname(request.getSurname());
         user.setPhone(request.getPhone());
+        user.setNotificationsEnabled(request.isNotificationsEnabled());
 
         userRepository.save(user);
 
