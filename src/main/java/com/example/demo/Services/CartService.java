@@ -385,6 +385,13 @@ public class CartService {
             throw new IllegalArgumentException("El estado es obligatorio");
         }
 
+        if (cart.getStatus() == OrderStatusEnum.READY && (nuevoEstado == OrderStatusEnum.PENDING || nuevoEstado == OrderStatusEnum.PRINTING || nuevoEstado == OrderStatusEnum.BINDING)) {
+            cart.setCompletedAt(null);
+
+            notificationService.createNotification(cart.getUser().getEmail(),
+                    String.valueOf(cartId), "Tu pedido está siendo revisado nuevamente, te avisaremos cuando esté listo.");
+        }
+
         cart.setStatus(nuevoEstado);
 
         sincronizarCartStatus(cart); //Lo marcamos para si esta en uso o no el carrito
