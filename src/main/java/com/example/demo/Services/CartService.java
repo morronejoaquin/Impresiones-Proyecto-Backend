@@ -206,9 +206,19 @@ public class CartService {
     }
 
 
-    public CartWithItemsResponse findOpenCart(UUID userId){
-        CartEntity cart = cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(userId, CartStatusEnum.OPEN)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CART_NOT_FOUND, "El usuario no tiene un carrito activo"));
+    public CartWithItemsResponse findOpenCart(String email){
+        UserEntity user = getUserByEmail(email);
+
+        CartEntity cart = cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(user.getId(), CartStatusEnum.OPEN)
+                .orElseGet(() -> {
+                    CartEntity newCart = new CartEntity();
+                    newCart.setUser(user);
+                    newCart.setTotal(0);
+                    newCart.setCustomer(new CustomerDataEntity(user.getName(), user.getSurname(), user.getEmail(), user.getPhone()));
+                    newCart.setCartStatus(CartStatusEnum.OPEN);
+                    newCart.setStatus(null);
+                    return cartRepository.save(newCart);
+                });
 
         List<OrderItemEntity> activeItems = cart.getItems().stream()
                 .filter(item -> !item.isDeleted())
@@ -231,12 +241,6 @@ public class CartService {
         cart.setItems(activeItems);
 
         return cartMapper.toResponseWithItems(cart);
-    }
-
-    // Buscar carrito abierto usando email
-    public CartWithItemsResponse findOpenCart(String email) {
-        UserEntity user = getUserByEmail(email);
-        return findOpenCart(user.getId());
     }
 
     // Obtener entidad de carrito abierto para el usuario (usado por PaymentService)
