@@ -1,16 +1,12 @@
 package com.example.demo.Security.Controller;
 import com.example.demo.Model.DTOS.Response.UserResponse;
+import com.example.demo.Security.DTOs.*;
 import com.example.demo.Security.Services.AuthService;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import com.example.demo.Security.DTOs.AuthResponse;
-import com.example.demo.Security.DTOs.LoginRequest;
-import com.example.demo.Security.DTOs.RegisterRequest;
-import com.example.demo.Security.DTOs.RegisterResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -56,6 +52,17 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse("Error al cerrar sesión: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+        try {
+            AuthResponse response = authService.refreshToken(request.getRefreshToken());
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Token de refresco inválido o expirado: " + e.getMessage()));
         }
     }
 

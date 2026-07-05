@@ -2,10 +2,11 @@ package com.example.demo.Security.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
 @Data
-public class AuthResponse {
-    private String accessToken;
+@NoArgsConstructor
+@AllArgsConstructor
+public class RefreshTokenRequest {
     private String refreshToken;
 }

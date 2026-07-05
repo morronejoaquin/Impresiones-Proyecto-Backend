@@ -58,7 +58,7 @@ public class SecurityConfig {
 
                         // 1. ENDPOINTS PÚBLICOS
                         .requestMatchers("/webhooks/**").permitAll()
-                        .requestMatchers("/auth/login", "/auth/register").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/prices/current").permitAll()
                         .requestMatchers("/store/location").permitAll()
