@@ -59,7 +59,9 @@ public class JwtService {
     }
 
     public void blacklistToken(String token) {
-        if (isTokenNotBlacklisted(token)) {
+        boolean yaEstaInvalidado = tokenBlacklistRepository.existsByToken(token);
+
+        if (!yaEstaInvalidado) {
             Date expirationDate = extractClaims(token).getExpiration();
             LocalDateTime expirationDateTime = expirationDate.toInstant()
                     .atZone(ZoneId.systemDefault())
