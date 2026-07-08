@@ -105,6 +105,12 @@ public class PaymentService {
                 cart.getId());
     }
 
+    public PaymentStatusEnum getStatusByCartId(UUID cartId) {
+        return paymentRepository.findTopByCartIdOrderByOrderDateDesc(cartId)
+                .map(PaymentEntity::getPaymentStatus)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+    }
+
     @Transactional
     public PaymentResponse updatePaymentStatus(UUID cartId, PaymentStatusUpdateRequest request) {
         PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cartId)

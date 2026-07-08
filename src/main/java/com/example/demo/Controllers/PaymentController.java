@@ -4,6 +4,7 @@ import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
 import com.example.demo.Model.DTOS.Request.PaymentStatusUpdateRequest;
 import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
+import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Services.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -85,6 +86,12 @@ public class PaymentController {
         return ResponseEntity.ok(
                 service.processCheckout(dto, authentication.getName())
         );
+    }
+
+    @GetMapping("/{cartId}/status")
+    @PreAuthorize("hasAuthority('PAGAR_CARRITO')")
+    public ResponseEntity<PaymentStatusEnum> getPaymentStatus(@PathVariable UUID cartId) {
+        return ResponseEntity.ok(service.getStatusByCartId(cartId));
     }
 
     @Operation(summary = "Actualizar estado del pago")
