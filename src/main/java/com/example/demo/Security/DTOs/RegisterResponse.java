@@ -14,4 +14,5 @@ public class RegisterResponse {
     private String email;
     private String accessToken;
     private String refreshToken;
+    private boolean notificationsEnabled;
 }

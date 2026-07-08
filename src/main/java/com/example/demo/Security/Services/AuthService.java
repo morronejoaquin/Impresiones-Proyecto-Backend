@@ -88,6 +88,7 @@ public class AuthService {
         user.setSurname(registerRequest.getSurname());
         user.setEmail(registerRequest.getEmail());
         user.setPhone(registerRequest.getPhone());
+        user.setNotificationsEnabled(registerRequest.isNotificationsEnabled());
         
         UserEntity savedUser = userRepository.save(user);
 
