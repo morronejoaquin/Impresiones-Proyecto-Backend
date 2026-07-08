@@ -74,15 +74,15 @@ public class NotificationService {
             Context context = new Context();
             context.setVariable("nombreCliente", nombre);
             context.setVariable("cartId", cartId);
-            context.setVariable("urlPedido", "https://puertocolores.com/my-orders/" + cartId);
+            context.setVariable("urlPedido", "https://printflow.com/my-orders/" + cartId);
 
             // Procesar el HTML
             String htmlContent = templateEngine.process("order-ready", context);
 
             helper.setTo(to);
-            helper.setSubject("Tu pedido en Puerto Colores está listo");
+            helper.setSubject("Tu pedido en PrintFlow está listo");
             helper.setText(htmlContent, true); // El 'true' indica que es HTML
-            helper.setFrom("notificaciones@puertocolores.com");
+            helper.setFrom("notificaciones@printflow.com");
 
             mailSender.send(message);
         }catch (Exception e) {

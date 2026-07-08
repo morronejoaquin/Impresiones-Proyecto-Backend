@@ -311,7 +311,7 @@ public class CartService {
                     .paymentMethod(payment != null ? payment.getPaymentMethod().name() : "N/A")
                     .paymentStatus(payment != null ? payment.getPaymentStatus().name() : "UNKNOWN")
                     .items(cart.getItems().stream()
-                            .map(orderItemMapper::toResponse) // Usa tu mapper actual para los ítems
+                            .map(orderItemMapper::toResponse)
                             .toList())
                     .build();
         });
@@ -392,7 +392,7 @@ public class CartService {
         if (cart.getStatus() == OrderStatusEnum.READY && (nuevoEstado == OrderStatusEnum.PENDING || nuevoEstado == OrderStatusEnum.PRINTING || nuevoEstado == OrderStatusEnum.BINDING)) {
             cart.setCompletedAt(null);
 
-            notificationService.createNotification(cart.getUser().getEmail(),
+            notificationService.saveToDataBase(cart.getUser().getEmail(),
                     String.valueOf(cartId), "Tu pedido está siendo revisado nuevamente, te avisaremos cuando esté listo.");
         }
 
