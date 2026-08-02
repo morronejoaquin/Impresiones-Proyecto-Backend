@@ -13,6 +13,7 @@ public enum ErrorCode {
     ORDER_ALREADY_DELIVERED("CART_005", "No se puede modificar un carrito entregado o cancelado", HttpStatus.BAD_REQUEST),
     CART_LIMIT_REACHED("CART_006", "Has alcanzado el límite máximo de items", HttpStatus.BAD_REQUEST),
     USER_HAS_OPEN_CART("CART_007", "El usuario ya tiene un carrito activo", HttpStatus.CONFLICT),
+    MAX_IN_PROGRESS_CARTS_REACHED("CART_008", "Has alcanzado el límite máximo de pedidos en proceso. Inténtalo más tarde.", HttpStatus.BAD_REQUEST),
 
     // Errores de Item
     ITEM_NOT_FOUND("ITEM_001", "El item no existe o no pertenece al carrito", HttpStatus.NOT_FOUND),

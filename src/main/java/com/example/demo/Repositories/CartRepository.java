@@ -5,6 +5,7 @@ import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Enums.AdminDateFilterType;
 import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.OrderStatusEnum;
+import com.example.demo.Model.Enums.PaymentStatusEnum;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -76,18 +77,29 @@ public interface CartRepository extends JpaRepository<CartEntity, UUID> {
     List<CartEntity> findByCartStatusAndLastModifiedAtBefore(CartStatusEnum status, Instant date);
 
     @Query("""
-    SELECT c FROM CartEntity c
+    SELECT DISTINCT c FROM CartEntity c
+    LEFT JOIN PaymentEntity p ON p.cart.id = c.id
     WHERE c.user.id = :userId
       AND c.status IS NOT NULL
-      AND c.status != CANCELLED
       AND c.deleted = false
+      AND (
+            (:orderStatus IS NULL AND :paymentStatus IS NULL AND c.status != com.example.demo.Model.Enums.OrderStatusEnum.CANCELLED)
+            OR 
+            (
+                (:paymentStatus IS NULL OR p.paymentStatus = :paymentStatus)
+                AND (:orderStatus IS NULL OR c.status = :orderStatus)
+            )
+      )
     ORDER BY c.createdAt DESC
     """)
-    Page<CartEntity> findByUser_IdAndStatusNotNullAndStatusNotAndDeletedFalseOrderByCreatedAtDesc(
+    Page<CartEntity> findUserOrdersWithFilters(
             @Param("userId") UUID userId,
-            @Param("status") OrderStatusEnum status,
+            @Param("orderStatus") OrderStatusEnum orderStatus,
+            @Param("paymentStatus") PaymentStatusEnum paymentStatus,
             Pageable pageable
     );
+
+    Long countByUser_IdAndCartStatusAndDeletedFalse(UUID userId, CartStatusEnum cartStatus);
 
     Page<CartEntity> findAllByDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
 

@@ -287,11 +287,11 @@ public class CartService {
     }
 
     // Obtener pedidos del usuario (carritos no abiertos)
-    public Page<CartHistoryResponse> obtenerPedidosDelUsuario(String email, Pageable pageable) {
+    public Page<CartHistoryResponse> obtenerPedidosDelUsuario(String email, OrderStatusEnum orderStatus, PaymentStatusEnum paymentStatus, Pageable pageable) {
         UserEntity user = getUserByEmail(email);
 
-        Page<CartEntity> carritos = cartRepository.findByUser_IdAndStatusNotNullAndStatusNotAndDeletedFalseOrderByCreatedAtDesc(
-                user.getId(), OrderStatusEnum.CANCELLED, pageable);
+        Page<CartEntity> carritos = cartRepository.findUserOrdersWithFilters(
+                user.getId(), orderStatus, paymentStatus, pageable);
 
         for (CartEntity cart: carritos){
             cart.setItems(cart.getItems().stream()

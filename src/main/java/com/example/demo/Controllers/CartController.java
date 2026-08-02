@@ -5,6 +5,7 @@ import com.example.demo.Model.DTOS.Request.OrderItemCreateRequest;
 import com.example.demo.Model.DTOS.Response.*;
 import com.example.demo.Model.Enums.AdminDateFilterType;
 import com.example.demo.Model.Enums.OrderStatusEnum;
+import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Services.CartService;
 import com.example.demo.Services.GoogleDriveService;
 import com.example.demo.Utils.FileMetaData;
@@ -249,9 +250,11 @@ public class CartController {
     @PreAuthorize("hasAuthority('VER_MIS_CARRITOS')")
     public ResponseEntity<Page<CartHistoryResponse>> obtenerMisPedidos(
             Authentication authentication,
+            @RequestParam(required = false) OrderStatusEnum orderStatus,
+            @RequestParam(required = false) PaymentStatusEnum paymentStatus,
             Pageable pageable) {
         return ResponseEntity.ok(
-                service.obtenerPedidosDelUsuario(authentication.getName(), pageable)
+                service.obtenerPedidosDelUsuario(authentication.getName(), orderStatus, paymentStatus, pageable)
         );
     }
 

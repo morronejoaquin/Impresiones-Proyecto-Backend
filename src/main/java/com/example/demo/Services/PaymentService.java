@@ -10,6 +10,7 @@ import com.example.demo.Model.DTOS.Response.PaymentPreferenceResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.PaymentEntity;
+import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Model.Enums.PaymentMethodEnum;
 import com.example.demo.Model.Enums.PaymentStatusEnum;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -32,6 +32,7 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
     private final PaymentRepository paymentRepository;
     private final CartService cartService;
+    private final CartRepository cartRepository;
     private final MercadoPagoService mercadoPagoService;
 
     @Autowired
@@ -44,6 +45,7 @@ public class PaymentService {
         this.paymentMapper = paymentMapper;
         this.paymentRepository = paymentRepository;
         this.cartService = cartService;
+        this.cartRepository = cartRepository;
         this.mercadoPagoService = mercadoPagoService;
     }
 
@@ -67,6 +69,17 @@ public class PaymentService {
 
         if(cart.getItems().isEmpty()){
             throw new BusinessException(ErrorCode.CART_IS_EMPTY);
+        }
+
+        // Verifica que no tenga mas de 3 pedidos en proceso
+        UUID userId = cart.getUser().getId();
+        Long inProgressCount = cartRepository.countByUser_IdAndCartStatusAndDeletedFalse(
+                userId,
+                CartStatusEnum.IN_PROGRESS
+        );
+
+        if (inProgressCount >= 3) {
+            throw new BusinessException(ErrorCode.MAX_IN_PROGRESS_CARTS_REACHED);
         }
 
         // si es por mercado pago, redirige a mercadoPagoService
