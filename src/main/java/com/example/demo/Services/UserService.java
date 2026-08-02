@@ -5,8 +5,12 @@ import com.example.demo.Model.DTOS.Mappers.UserMapper;
 import com.example.demo.Model.DTOS.Request.UpdateProfileRequest;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Model.DTOS.Response.ProfileResponse;
+import com.example.demo.Model.Entities.CartEntity;
+import com.example.demo.Model.Entities.CustomerDataEntity;
 import com.example.demo.Model.Entities.UserEntity;
+import com.example.demo.Model.Enums.CartStatusEnum;
 import com.example.demo.Model.Enums.ErrorCode;
+import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.UserRepository;
 import com.example.demo.Security.Model.Entities.CredentialsEntity;
 import com.example.demo.Security.Repositories.CredentialsRepository;
@@ -20,6 +24,7 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,16 +33,17 @@ public class UserService {
     private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final CredentialsRepository credentialsRepository;
+    private final CartRepository cartRepository;
 
     @Autowired
-    public UserService(
-            UserMapper userMapper,
-            UserRepository userRepository,
-            CredentialsRepository credentialsRepository
-    ) {
+    public UserService(UserMapper userMapper,
+                       UserRepository userRepository,
+                       CredentialsRepository credentialsRepository,
+                       CartRepository cartRepository) {
         this.userMapper = userMapper;
         this.userRepository = userRepository;
         this.credentialsRepository = credentialsRepository;
+        this.cartRepository = cartRepository;
     }
 
     public Page<UserResponse> findAll(Pageable pageable){
@@ -112,6 +118,23 @@ public class UserService {
         user.setNotificationsEnabled(request.isNotificationsEnabled());
 
         userRepository.save(user);
+
+        // Actualiza los datos del carrito activo
+        Optional<CartEntity> activeCart = cartRepository.findByUser_IdAndCartStatusAndDeletedFalse(user.getId(), CartStatusEnum.OPEN);
+        if (activeCart.isPresent()) {
+            CartEntity cart = activeCart.get();
+
+            if (cart.getCustomer() == null) {
+                cart.setCustomer(new CustomerDataEntity());
+            }
+
+            cart.getCustomer().setName(user.getName());
+            cart.getCustomer().setSurname(user.getSurname());
+            cart.getCustomer().setEmail(user.getEmail());
+            cart.getCustomer().setPhone(user.getPhone());
+
+            cartRepository.save(cart);
+        }
 
         return userMapper.toResponse(user);
     }
