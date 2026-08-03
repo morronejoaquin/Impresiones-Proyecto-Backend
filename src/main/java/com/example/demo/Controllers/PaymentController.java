@@ -2,6 +2,7 @@ package com.example.demo.Controllers;
 
 import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
 import com.example.demo.Model.DTOS.Request.PaymentStatusUpdateRequest;
+import com.example.demo.Model.DTOS.Request.PaymentRefundRequest;
 import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
 import com.example.demo.Model.Enums.PaymentStatusEnum;
@@ -104,4 +105,17 @@ public class PaymentController {
     ){
         return ResponseEntity.ok(service.updatePaymentStatus(cartId, dto));
     }
+
+    @Operation(summary = "Reembolsar un pago y cancelar el pedido")
+    @PostMapping("/{cartId}/refund")
+    @PreAuthorize("hasAuthority('ACTUALIZAR_PAGO')")
+    public ResponseEntity<PaymentResponse> refundPayment(
+            @Parameter(description = "ID del carrito")
+            @PathVariable UUID cartId,
+            @RequestBody PaymentRefundRequest dto,
+            @Parameter(hidden = true) Authentication authentication
+    ){
+        return ResponseEntity.ok(service.refundOrder(cartId, dto, authentication.getName()));
+    }
+
 }

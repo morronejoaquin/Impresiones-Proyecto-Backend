@@ -44,5 +44,14 @@ public class PaymentEntity {
     private Instant orderDate;
 
     private Instant paidAt;
+
+    private Instant refundedAt;
+
+    private double refundedAmount;
+
+    @Column(columnDefinition = "TEXT")
+    private String refundReason;
+
+    private String refundedByAdminEmail;
 }
 

@@ -4,16 +4,14 @@ import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Model.DTOS.Mappers.PaymentMapper;
 import com.example.demo.Model.DTOS.Request.PaymentCreateRequest;
 import com.example.demo.Model.DTOS.Request.PaymentStatusUpdateRequest;
+import com.example.demo.Model.DTOS.Request.PaymentRefundRequest;
 import com.example.demo.Model.DTOS.Response.CartResponse;
 import com.example.demo.Model.DTOS.Response.CartHistoryResponse;
 import com.example.demo.Model.DTOS.Response.PaymentPreferenceResponse;
 import com.example.demo.Model.DTOS.Response.PaymentResponse;
 import com.example.demo.Model.Entities.CartEntity;
 import com.example.demo.Model.Entities.PaymentEntity;
-import com.example.demo.Model.Enums.CartStatusEnum;
-import com.example.demo.Model.Enums.ErrorCode;
-import com.example.demo.Model.Enums.PaymentMethodEnum;
-import com.example.demo.Model.Enums.PaymentStatusEnum;
+import com.example.demo.Model.Enums.*;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.PaymentRepository;
 import com.example.demo.Repositories.UserRepository;
@@ -137,6 +135,36 @@ public class PaymentService {
         }
 
         paymentRepository.save(payment);
+
+        return paymentMapper.toResponse(payment);
+    }
+
+    @Transactional
+    public PaymentResponse refundOrder(UUID cartId, PaymentRefundRequest request, String adminEmail) {
+        PaymentEntity payment = paymentRepository.findTopByCartIdOrderByOrderDateDesc(cartId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND, "Pago no encontrado para este carrito"));
+
+        // Si el pago fue por Mercado Pago, se hace el reembolso total en la API
+        if (PaymentMethodEnum.MERCADO_PAGO.equals(payment.getPaymentMethod())) {
+            if (payment.getMpPaymentId() != null) {
+                mercadoPagoService.refundPayment(payment.getMpPaymentId());
+            }
+        }
+        // Si es CASH o TRANSFER, el admin ya sabe que debe devolver el efectivo o hacer la transferencia manual.
+
+        // Actualiza los datos de pago y auditoría con el precio completo
+        payment.setPaymentStatus(PaymentStatusEnum.REFUNDED);
+        payment.setRefundedAt(Instant.now());
+        payment.setRefundedAmount(payment.getFinalPrice());
+        payment.setRefundReason(request.getReason());
+        payment.setRefundedByAdminEmail(adminEmail);
+        paymentRepository.save(payment);
+
+        // Cancela el carrito y pedido asociado para sacarlo de la reconciliación y producción
+        CartEntity cart = payment.getCart();
+        cart.setStatus(OrderStatusEnum.CANCELLED);
+        cart.setCartStatus(CartStatusEnum.CANCELLED);
+        cartRepository.save(cart);
 
         return paymentMapper.toResponse(payment);
     }

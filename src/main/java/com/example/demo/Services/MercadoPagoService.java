@@ -10,6 +10,7 @@ import com.example.demo.Model.Enums.PaymentStatusEnum;
 import com.example.demo.Repositories.CartRepository;
 import com.example.demo.Repositories.PaymentRepository;
 import com.mercadopago.MercadoPagoConfig;
+import com.mercadopago.client.payment.PaymentRefundClient;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceItemRequest;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -104,6 +104,25 @@ public class MercadoPagoService {
             throw new RuntimeException("Error MercadoPago API: " + e.getApiResponse().getContent());
         } catch (MPException e) {
             throw new RuntimeException("Error MercadoPago SDK", e);
+        }
+    }
+
+    public void refundPayment(Long mpPaymentId) {
+        MercadoPagoConfig.setAccessToken(accessToken);
+        PaymentRefundClient refundClient = new PaymentRefundClient();
+
+        try {
+            // Al no pasarle monto, Mercado Pago hace el reembolso total de forma nativa
+            refundClient.refund(mpPaymentId);
+
+        } catch (MPApiException e) {
+            System.err.println("STATUS CODE: " + e.getStatusCode());
+            System.err.println("RESPONSE CONTENT: " + e.getApiResponse().getContent());
+            e.printStackTrace();
+
+            throw new RuntimeException("Error MercadoPago API al reembolsar: " + e.getApiResponse().getContent());
+        } catch (MPException e) {
+            throw new RuntimeException("Error SDK MercadoPago en reembolso", e);
         }
     }
 }
