@@ -38,7 +38,8 @@ public enum ErrorCode {
     USER_NOT_FOUND("USER_001", "Usuario no encontrado", HttpStatus.NOT_FOUND),
     ACCESS_DENIED("AUTH_001", "No tienes permisos para esta acción", HttpStatus.FORBIDDEN),
     INVALID_CREDENTIALS("AUTH_002", "Email o contraseña incorrectos", HttpStatus.UNAUTHORIZED),
-    CREDENTIALS_NOT_FOUND("AUTH_003", "Credenciales del usuaio no encontradas", HttpStatus.NOT_FOUND);
+    CREDENTIALS_NOT_FOUND("AUTH_003", "Credenciales del usuaio no encontradas", HttpStatus.NOT_FOUND),
+    INCORRECT_PASSWORD("AUTH_004", "La contraseña actual es incorrecta", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String defaultMessage;

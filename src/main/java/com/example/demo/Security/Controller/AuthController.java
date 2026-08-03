@@ -2,6 +2,7 @@ package com.example.demo.Security.Controller;
 import com.example.demo.Model.DTOS.Response.UserResponse;
 import com.example.demo.Security.DTOs.*;
 import com.example.demo.Security.Services.AuthService;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(
-            @RequestBody RegisterRequest request) {
+            @Valid @RequestBody RegisterRequest request) {
         try {
             RegisterResponse response = authService.register(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -64,6 +65,17 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Token de refresco inválido o expirado: " + e.getMessage()));
         }
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            Authentication authentication,
+            @Valid @RequestBody ChangePasswordRequest request) {
+
+        String email = authentication.getName();
+        authService.changePassword(email, request);
+
+        return ResponseEntity.ok(new LogoutResponse("Contraseña actualizada exitosamente"));
     }
 
     @Getter

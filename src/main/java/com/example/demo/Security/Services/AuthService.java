@@ -1,13 +1,12 @@
 package com.example.demo.Security.Services;
 
+import com.example.demo.Exceptions.BusinessException;
 import com.example.demo.Exceptions.InvalidCredentialsException;
 import com.example.demo.Model.DTOS.Mappers.UserMapper;
 import com.example.demo.Model.Entities.UserEntity;
+import com.example.demo.Model.Enums.ErrorCode;
 import com.example.demo.Repositories.UserRepository;
-import com.example.demo.Security.DTOs.AuthResponse;
-import com.example.demo.Security.DTOs.LoginRequest;
-import com.example.demo.Security.DTOs.RegisterRequest;
-import com.example.demo.Security.DTOs.RegisterResponse;
+import com.example.demo.Security.DTOs.*;
 import com.example.demo.Security.Model.Entities.CredentialsEntity;
 import com.example.demo.Security.Model.Entities.RefreshToken;
 import com.example.demo.Security.Model.Entities.RoleEntity;
@@ -74,7 +73,7 @@ public class AuthService {
 
     @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
-        // Validar que el email no esté registrado
+        // Valida que el email no esté registrado
         if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
             throw new IllegalArgumentException("El email ya está registrado");
         }
@@ -130,5 +129,19 @@ public class AuthService {
             throw new IllegalArgumentException("Token no puede estar vacío");
         }
         jwtService.blacklistToken(token);
+    }
+
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        CredentialsEntity credentials = credentialsRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), credentials.getPassword())) {
+            throw new BusinessException(ErrorCode.INCORRECT_PASSWORD);
+        }
+
+        credentials.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        credentialsRepository.save(credentials);
     }
 }
