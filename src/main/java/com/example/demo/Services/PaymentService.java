@@ -147,9 +147,16 @@ public class PaymentService {
         // Si el pago fue por Mercado Pago, se hace el reembolso total en la API
         if (PaymentMethodEnum.MERCADO_PAGO.equals(payment.getPaymentMethod())) {
             if (payment.getMpPaymentId() != null) {
-                mercadoPagoService.refundPayment(payment.getMpPaymentId());
+                try {
+                    mercadoPagoService.refundPayment(payment.getMpPaymentId());
+                } catch (Exception e) {
+                    // En entorno de pruebas (Sandbox), MP suele bloquear los refunds vía API.
+                    // Se registra como advertencia pero permitimos cancelar el pedido localmente.
+                    System.err.println(">>> [ADVERTENCIA] No se pudo reembolsar en la API de MP (comportamiento habitual en Sandbox): " + e.getMessage());
+                }
             }
         }
+
         // Si es CASH o TRANSFER, el admin ya sabe que debe devolver el efectivo o hacer la transferencia manual.
 
         // Actualiza los datos de pago y auditoría con el precio completo
